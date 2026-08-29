@@ -21,6 +21,9 @@ jest.mock("@/lib/api/client", () => ({
       list: jest.fn(),
       create: jest.fn(),
     },
+    subscription: {
+      get: jest.fn(),
+    },
   },
   ApiError: class ApiError extends Error {
     status: number;
@@ -36,6 +39,18 @@ jest.mock("@/lib/api/client", () => ({
 
 const mockedList = apiClient.events.list as jest.Mock;
 const mockedCreate = apiClient.events.create as jest.Mock;
+const mockedSubscriptionGet = apiClient.subscription.get as jest.Mock;
+
+function buildUsage(overrides: Record<string, unknown> = {}) {
+  return {
+    plan_name: "Básico",
+    monthly_price: 0,
+    publish_quota: 5,
+    publishes_used_this_period: 5,
+    is_at_limit: true,
+    ...overrides,
+  };
+}
 
 async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Título"), "Show da Banda");
@@ -51,8 +66,10 @@ describe("NovoEventoPage", () => {
   beforeEach(() => {
     mockedList.mockReset();
     mockedCreate.mockReset();
+    mockedSubscriptionGet.mockReset();
     mockPush.mockReset();
     mockedList.mockResolvedValue({ data: [] });
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: false }) });
   });
 
   it("GIVEN a valid event form WHEN submitted THEN calls create and redirects to /eventos", async () => {
@@ -80,5 +97,27 @@ describe("NovoEventoPage", () => {
     expect(await screen.findByText("Sua conta ainda não foi aprovada.")).toBeInTheDocument();
     expect(screen.queryByText("Ocorreu um erro inesperado.")).not.toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("GIVEN the organizer's quota is at limit THEN shows the blocking banner with the upgrade link and quota widget", async () => {
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: true }) });
+
+    render(<NovoEventoPage />);
+
+    expect(await screen.findByText(/limite de publicações do seu plano/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver planos disponíveis" })).toHaveAttribute(
+      "href",
+      "https://qor.app/planos",
+    );
+    expect(screen.getByText(/de 5 publicações usadas este mês/)).toBeInTheDocument();
+  });
+
+  it("GIVEN the organizer's quota is not at limit THEN does not show the banner", async () => {
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: false }) });
+
+    render(<NovoEventoPage />);
+
+    await screen.findByLabelText("Título");
+    expect(screen.queryByText(/limite de publicações do seu plano/i)).not.toBeInTheDocument();
   });
 });

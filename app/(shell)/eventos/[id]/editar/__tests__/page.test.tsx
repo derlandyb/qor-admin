@@ -23,6 +23,9 @@ jest.mock("@/lib/api/client", () => ({
       list: jest.fn(),
       update: jest.fn(),
     },
+    subscription: {
+      get: jest.fn(),
+    },
   },
   ApiError: class ApiError extends Error {
     status: number;
@@ -38,6 +41,18 @@ jest.mock("@/lib/api/client", () => ({
 
 const mockedList = apiClient.events.list as jest.Mock;
 const mockedUpdate = apiClient.events.update as jest.Mock;
+const mockedSubscriptionGet = apiClient.subscription.get as jest.Mock;
+
+function buildUsage(overrides: Record<string, unknown> = {}) {
+  return {
+    plan_name: "Básico",
+    monthly_price: 0,
+    publish_quota: 5,
+    publishes_used_this_period: 5,
+    is_at_limit: true,
+    ...overrides,
+  };
+}
 
 function buildEvent(overrides: Record<string, unknown> = {}) {
   return {
@@ -65,8 +80,10 @@ describe("EditarEventoPage", () => {
   beforeEach(() => {
     mockedList.mockReset();
     mockedUpdate.mockReset();
+    mockedSubscriptionGet.mockReset();
     mockPush.mockReset();
     mockParams = { id: "1" };
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: false }) });
   });
 
   it("GIVEN the events list has not loaded yet THEN shows a loading state", () => {
@@ -116,5 +133,30 @@ describe("EditarEventoPage", () => {
 
     expect(await screen.findByText("Sua conta ainda não foi aprovada.")).toBeInTheDocument();
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("GIVEN the organizer's quota is at limit THEN shows the blocking banner with the upgrade link and quota widget, without hiding the form", async () => {
+    mockedList.mockResolvedValueOnce({ data: [buildEvent({ id: 1 })] });
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: true }) });
+
+    render(<EditarEventoPage />);
+
+    expect(await screen.findByText(/limite de publicações do seu plano/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver planos disponíveis" })).toHaveAttribute(
+      "href",
+      "https://qor.app/planos",
+    );
+    expect(screen.getByText(/de 5 publicações usadas este mês/)).toBeInTheDocument();
+    expect(await screen.findByLabelText("Título")).toBeInTheDocument();
+  });
+
+  it("GIVEN the organizer's quota is not at limit THEN does not show the banner", async () => {
+    mockedList.mockResolvedValueOnce({ data: [buildEvent({ id: 1 })] });
+    mockedSubscriptionGet.mockResolvedValue({ data: buildUsage({ is_at_limit: false }) });
+
+    render(<EditarEventoPage />);
+
+    await screen.findByLabelText("Título");
+    expect(screen.queryByText(/limite de publicações do seu plano/i)).not.toBeInTheDocument();
   });
 });

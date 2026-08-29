@@ -4,13 +4,32 @@ import { adminApiBaseUrl, SESSION_COOKIE_NAME } from "@/lib/api/session-cookie";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
+/**
+ * Rejects any segment that isn't a plain path component — in particular
+ * "." / ".." (which would let a crafted request escape the
+ * /api/admin/v1/ prefix once the upstream URL string is parsed, e.g.
+ * .../admin/../../v1/events resolving outside the admin route group
+ * this proxy always attaches the admin bearer token to) and empty
+ * segments (double slashes). ARCHITECTURE §2 treats the /api/v1 vs
+ * /api/admin/v1 split as a hard boundary, not just a naming convention —
+ * this keeps the proxy from silently reintroducing it as bypassable.
+ */
+function isSafePathSegment(segment: string): boolean {
+  return segment.length > 0 && segment !== "." && segment !== "..";
+}
+
 async function proxy(request: Request, context: RouteContext): Promise<NextResponse> {
   const { path } = await context.params;
+
+  if (!path.every(isSafePathSegment)) {
+    return NextResponse.json({ message: "Caminho inválido." }, { status: 400 });
+  }
+
   const store = await cookies();
   const token = store.get(SESSION_COOKIE_NAME)?.value;
 
   const url = new URL(request.url);
-  const upstreamUrl = `${adminApiBaseUrl()}/api/admin/v1/${path.join("/")}${url.search}`;
+  const upstreamUrl = `${adminApiBaseUrl()}/api/admin/v1/${path.map(encodeURIComponent).join("/")}${url.search}`;
 
   const headers: Record<string, string> = { Accept: "application/json" };
   const contentType = request.headers.get("content-type");

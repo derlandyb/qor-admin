@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import EventoApprovalsPage from "@/app/aprovacoes/eventos/page";
+import EventoApprovalsPage from "../page";
 import { apiClient, ApiError } from "@/lib/api/client";
 import { City, EventCreatedByType, EventStatus } from "@/lib/enums";
 import type { Paginated, QorEvent } from "@/lib/api/types";

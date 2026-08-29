@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import CadastroLocalPage from "@/app/cadastro/local/page";
+import CadastroLocalPage from "../page";
 import { apiClient, ApiError } from "@/lib/api/client";
 
 /**

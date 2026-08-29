@@ -11,6 +11,22 @@
  */
 export const SESSION_COOKIE_NAME = "qor_admin_session";
 
+/**
+ * Non-httpOnly companion cookie holding only display data (name, whether
+ * the account is a Super Admin) — never the token. It exists so client
+ * components (Sidebar/Topbar) can render "who's logged in" without a
+ * `/me` endpoint (qor-api's admin API doesn't expose one). Purely a UI
+ * convenience: losing/spoofing this cookie has no security consequence,
+ * since every real request is still gated by the httpOnly session cookie
+ * and server-side policies.
+ */
+export const PROFILE_COOKIE_NAME = "qor_admin_profile";
+
+export interface AdminProfileCookie {
+  name: string;
+  isSuperAdmin: boolean;
+}
+
 export function adminApiBaseUrl(): string {
   return process.env.ADMIN_API_BASE_URL ?? "http://localhost:8000";
 }

@@ -1,7 +1,7 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import EventosPage from "@/app/eventos/page";
+import EventosPage from "../page";
 import { apiClient } from "@/lib/api/client";
 
 /**

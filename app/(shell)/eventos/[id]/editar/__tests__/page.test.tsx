@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import EditarEventoPage from "@/app/eventos/[id]/editar/page";
+import EditarEventoPage from "../page";
 import { apiClient, ApiError } from "@/lib/api/client";
 
 const mockPush = jest.fn();

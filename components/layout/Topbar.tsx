@@ -45,9 +45,10 @@ function ChevronDownIcon() {
 export interface TopbarProps {
   userName: string;
   onCreateEvent?: () => void;
+  onLogout?: () => void;
 }
 
-export function Topbar({ userName, onCreateEvent }: TopbarProps) {
+export function Topbar({ userName, onCreateEvent, onLogout }: TopbarProps) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
@@ -123,6 +124,7 @@ export function Topbar({ userName, onCreateEvent }: TopbarProps) {
                 <button
                   role="menuitem"
                   type="button"
+                  onClick={onLogout}
                   className="block w-full px-4 py-2 text-left text-admin-text-secondary transition-[color,background-color] duration-admin-control ease-admin-control hover:bg-admin-bg-surface hover:text-admin-text-primary"
                 >
                   Sair

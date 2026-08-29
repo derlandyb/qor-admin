@@ -80,25 +80,25 @@ function MyEventsIcon() {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    href: "/",
+    href: "/dashboard",
     label: "Dashboard",
     roles: ["super_admin", "venue_admin", "promoter"],
     icon: <DashboardIcon />,
   },
   {
-    href: "/aprovacao-contas",
+    href: "/aprovacoes/contas",
     label: "Aprovação de Contas",
     roles: ["super_admin"],
     icon: <AccountsIcon />,
   },
   {
-    href: "/aprovacao-eventos",
+    href: "/aprovacoes/eventos",
     label: "Aprovação de Eventos",
     roles: ["super_admin"],
     icon: <EventsIcon />,
   },
   {
-    href: "/meus-eventos",
+    href: "/eventos",
     label: "Meus Eventos",
     roles: ["venue_admin", "promoter"],
     icon: <MyEventsIcon />,

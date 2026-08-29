@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 
 jest.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => "/dashboard",
 }));
 
 import { Sidebar } from "../Sidebar";

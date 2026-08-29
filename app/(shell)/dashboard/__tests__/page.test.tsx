@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 
-import DashboardPage from "@/app/dashboard/page";
+import DashboardPage from "../page";
 import { apiClient, ApiError } from "@/lib/api/client";
 import { EventStatus } from "@/lib/enums";
 import type { DashboardEvent } from "@/lib/api/types";

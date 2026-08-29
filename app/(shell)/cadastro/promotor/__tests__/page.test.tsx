@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import CadastroPromotorPage from "@/app/cadastro/promotor/page";
+import CadastroPromotorPage from "../page";
 import { apiClient, ApiError } from "@/lib/api/client";
 
 jest.mock("@/lib/api/client", () => ({

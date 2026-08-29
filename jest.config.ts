@@ -16,6 +16,14 @@ const config: Config = {
     "hooks/**/*.{ts,tsx}",
     "lib/**/*.{ts,tsx}",
     "!**/*.d.ts",
+    // Route handlers use next/headers' cookies(), which requires a real
+    // Next.js request scope — unit-mocking it is brittle/low-value; these
+    // are exercised for real by the Playwright E2E flow (AT23) instead.
+    "!app/api/**",
+    // Trivial framework glue (redirect-only root page, font/metadata-only
+    // root layout) — no branching logic worth a unit test.
+    "!app/layout.tsx",
+    "!app/page.tsx",
   ],
   coverageThreshold: {
     global: {

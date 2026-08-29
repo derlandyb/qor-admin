@@ -78,6 +78,25 @@ function MyEventsIcon() {
   );
 }
 
+function PlansIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+      <rect x="3.5" y="5.5" width="17" height="13" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M3.5 10.5h17" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M7 14.5h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SubscriptionIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 7.5v9M9 9.8c0-1.3 1.3-2.3 3-2.3s3 1 3 2.3-1.3 2-3 2-3 .8-3 2.1 1.3 2.3 3 2.3 3-1 3-2.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard",
@@ -102,6 +121,18 @@ const NAV_ITEMS: NavItem[] = [
     label: "Meus Eventos",
     roles: ["venue_admin", "promoter"],
     icon: <MyEventsIcon />,
+  },
+  {
+    href: "/planos",
+    label: "Planos",
+    roles: ["super_admin"],
+    icon: <PlansIcon />,
+  },
+  {
+    href: "/assinatura",
+    label: "Assinatura",
+    roles: ["venue_admin", "promoter"],
+    icon: <SubscriptionIcon />,
   },
 ];
 

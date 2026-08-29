@@ -3,13 +3,8 @@
 /**
  * LGPD Art. 7 consent-capture control (ADMIN-02/ADMIN-06 — Venue/Promoter
  * self-registration must capture explicit, non-pre-checked consent to the
- * terms of use). Reusable so every registration flow captures consent the
- * same way instead of hand-rolling its own checkbox.
- *
- * NOTE: `RegistrationForm.tsx`'s current inline `terms_accepted` checkbox
- * predates this component and is a candidate for a follow-up refactor to
- * use it — intentionally NOT refactored here (out of scope for this task,
- * and that file already has its own tested behaviour).
+ * terms of use). Used by RegistrationForm; reusable for any future
+ * registration flow that needs the same consent UI.
  *
  * NOTE: the terms link below points to `#` as a placeholder — no terms
  * page exists yet. Wire it up to the real route once one is published.

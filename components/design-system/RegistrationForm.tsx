@@ -3,22 +3,19 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import { City, CityLabel } from "@/lib/enums";
 import type { RegisterPromoterPayload, RegisterVenuePayload } from "@/lib/api/types";
+import { ConsentCapture } from "./ConsentCapture";
 
 /**
- * Shared input/select/checkbox styling (design-system-admin.md §5.8): dark
- * fill, 1px subtle border, per-control radius token, 150ms ease-in-out
- * focus transition on border-color/box-shadow. Checkboxes are instant (no
- * transition) per the a11y-clarity convention — do not add a transition
- * utility to CHECKBOX_CLASS.
+ * Shared input/select styling (design-system-admin.md §5.8): dark fill,
+ * 1px subtle border, per-control radius token, 150ms ease-in-out focus
+ * transition on border-color/box-shadow. Terms-acceptance uses the
+ * shared ConsentCapture component instead of a local checkbox.
  */
 const INPUT_CLASS =
   "w-full bg-admin-bg-surface border border-admin-border-subtle rounded-admin-input px-5 pt-[13px] pb-[11px] text-sm text-admin-text-primary placeholder:text-admin-text-secondary transition-[border-color,box-shadow] duration-admin-control ease-admin-control focus:outline-none focus:border-admin-primary focus:shadow-[0_0_0_2px_rgba(0,144,231,0.25)]";
 
 const SELECT_CLASS =
   "w-full bg-admin-bg-surface border border-admin-border-subtle rounded-admin-select px-5 pt-[13px] pb-[11px] text-sm text-admin-text-primary transition-[border-color,box-shadow] duration-admin-control ease-admin-control focus:outline-none focus:border-admin-primary focus:shadow-[0_0_0_2px_rgba(0,144,231,0.25)]";
-
-const CHECKBOX_CLASS =
-  "h-4 w-4 rounded-admin-checkbox border border-admin-border-subtle bg-white text-admin-primary";
 
 interface FieldProps {
   id: string;
@@ -342,27 +339,11 @@ export function RegistrationForm({
         />
       </Field>
 
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-2">
-          <input
-            id="terms_accepted"
-            type="checkbox"
-            className={CHECKBOX_CLASS}
-            checked={state.terms_accepted}
-            onChange={(event) => updateField("terms_accepted", event.target.checked)}
-            aria-invalid={Boolean(errors.terms_accepted)}
-            aria-describedby={errors.terms_accepted ? "terms_accepted-error" : undefined}
-          />
-          <label htmlFor="terms_accepted" className="text-sm text-admin-text-secondary">
-            Aceito os termos de uso
-          </label>
-        </div>
-        {errors.terms_accepted ? (
-          <p id="terms_accepted-error" role="alert" className="text-sm text-admin-danger">
-            {errors.terms_accepted}
-          </p>
-        ) : null}
-      </div>
+      <ConsentCapture
+        checked={state.terms_accepted}
+        onChange={(checked) => updateField("terms_accepted", checked)}
+        error={errors.terms_accepted}
+      />
 
       <button
         type="submit"

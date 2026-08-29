@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { adminApiBaseUrl, PROFILE_COOKIE_NAME, SESSION_COOKIE_NAME } from "@/lib/api/session-cookie";
-import type { AdminAccount } from "@/lib/api/types";
+import { SUPER_ADMIN_PERMISSION, type AdminAccount } from "@/lib/api/types";
 
 export async function POST(request: Request): Promise<NextResponse> {
   const body = await request.text();
@@ -32,7 +32,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     PROFILE_COOKIE_NAME,
     JSON.stringify({
       name: payload.data.name,
-      isSuperAdmin: payload.data.permissions.includes("approvals.manage"),
+      isSuperAdmin: payload.data.permissions.includes(SUPER_ADMIN_PERMISSION),
     }),
     { ...cookieOptions, httpOnly: false },
   );

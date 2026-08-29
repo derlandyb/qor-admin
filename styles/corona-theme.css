@@ -1,0 +1,173 @@
+/**
+ * Corona design-system token layer (QOR Admin's own visual identity — see
+ * /design-system-admin.md §1-4). This is the admin panel's ONLY design
+ * system: it deliberately does NOT share tokens with NIGHTLIFE-GV
+ * (mobile/website/landing) — no Space Grotesk/Inter, no pink/orange/purple/
+ * blue accents, no --ease-beat/--duration-* names.
+ *
+ * Every later admin component task reuses these tokens instead of inlining
+ * ad hoc values (see admin.md AT6 "Done when").
+ */
+@theme {
+  /* ---------------------------------------------------------------------
+   * 1. Colors (design-system-admin.md §1)
+   * ------------------------------------------------------------------- */
+
+  /* 1.1 Surfaces */
+  --color-admin-bg-body: #000000;
+  --color-admin-bg-surface: #191c24;
+  --color-admin-bg-surface-alt: #000000;
+  --color-admin-border-subtle: #2c2e33;
+  --color-admin-border-hairline: rgba(0, 0, 0, 0.176);
+  --color-admin-text-primary: #ffffff;
+  --color-admin-text-secondary: #6c7293;
+  --color-admin-text-muted: #9c9fa6;
+
+  /* 1.2 Semantic accent palette */
+  --color-admin-primary: #0090e7;
+  --color-admin-secondary: #e4eaec;
+  --color-admin-success: #00d25b;
+  --color-admin-danger: #fc424a;
+  --color-admin-warning: #ffab00;
+  --color-admin-info: #8f5fe8;
+  --color-admin-light: #ffffff;
+  --color-admin-dark: #0d0d0d;
+
+  /* ---------------------------------------------------------------------
+   * 2. Typography (design-system-admin.md §2)
+   * ------------------------------------------------------------------- */
+
+  --font-admin-sans: var(--font-rubik), sans-serif;
+
+  --text-admin-h1: 35.04px;
+  --text-admin-h1--line-height: 42.05px;
+  --text-admin-h2: 30px;
+  --text-admin-h2--line-height: 36px;
+  --text-admin-h3: 18px;
+  --text-admin-h3--line-height: 21.6px;
+  --text-admin-h4: 18px;
+  --text-admin-h4--line-height: 21.6px;
+  --text-admin-h5: 16px;
+  --text-admin-h5--line-height: 19.2px;
+  --text-admin-h6: 15px;
+  --text-admin-h6--line-height: 18px;
+  --text-admin-body: 14px;
+  --text-admin-body--line-height: 14px;
+
+  /* ---------------------------------------------------------------------
+   * 3. Spacing & radii (design-system-admin.md §3)
+   * ------------------------------------------------------------------- */
+
+  --radius-admin-card: 4px;
+  --radius-admin-input: 2px;
+  --radius-admin-select: 6px;
+  --radius-admin-badge: 4px;
+  --radius-admin-button: 3px;
+  --radius-admin-button-pill: 50px;
+  --radius-admin-modal: 8px;
+  --radius-admin-checkbox: 3.5px;
+  --radius-admin-nav-pill: 0 100px 100px 0;
+
+  --spacing-admin-sidebar: 244px;
+
+  /* ---------------------------------------------------------------------
+   * 4. Motion (design-system-admin.md §4 — exact measured values, do not
+   *    round differently in components that consume these tokens)
+   * ------------------------------------------------------------------- */
+
+  /* Buttons / form inputs: color, background-color, border-color, box-shadow */
+  --ease-admin-control: ease-in-out;
+  --duration-admin-control: 150ms;
+
+  /* Sidebar nav-link color transition */
+  --ease-admin-nav: ease-in-out;
+  --duration-admin-nav: 450ms;
+
+  /* Modal backdrop/wrapper opacity fade */
+  --ease-admin-modal-fade: linear;
+  --duration-admin-modal-fade: 150ms;
+
+  /* Modal dialog transform (slide-in) */
+  --ease-admin-modal: ease;
+  --duration-admin-modal: 400ms;
+}
+
+/**
+ * `--radius-admin-nav-pill` above is a 4-value radius shorthand, which the
+ * `rounded-admin-nav-pill` utility Tailwind generates from a `--radius-*`
+ * token cannot express (radius utilities are single-value). It's kept as a
+ * documented value but consumed via the arbitrary-value utility instead:
+ * `rounded-[0_100px_100px_0]`.
+ */
+
+@layer base {
+  h1 {
+    font-size: var(--text-admin-h1);
+    line-height: var(--text-admin-h1--line-height);
+    font-weight: 500;
+  }
+  h2 {
+    font-size: var(--text-admin-h2);
+    line-height: var(--text-admin-h2--line-height);
+    font-weight: 500;
+  }
+  h3 {
+    font-size: var(--text-admin-h3);
+    line-height: var(--text-admin-h3--line-height);
+    font-weight: 500;
+  }
+  h4 {
+    font-size: var(--text-admin-h4);
+    line-height: var(--text-admin-h4--line-height);
+    font-weight: 500;
+  }
+  h5 {
+    font-size: var(--text-admin-h5);
+    line-height: var(--text-admin-h5--line-height);
+    font-weight: 400;
+  }
+  h6 {
+    font-size: var(--text-admin-h6);
+    line-height: var(--text-admin-h6--line-height);
+    font-weight: 500;
+  }
+  body {
+    font-size: var(--text-admin-body);
+    line-height: var(--text-admin-body--line-height);
+    font-weight: 400;
+  }
+}
+
+/**
+ * Progress bar stripe/animation (design-system-admin.md §5.10) — Tailwind
+ * v4 can't express raw @keyframes / background-image gradients as utility
+ * classes, so these are hand-written and applied via className from
+ * components/design-system/ProgressBar.tsx. `.admin-progress-animated`
+ * literally reuses Bootstrap's own `progress-bar-stripes` keyframe.
+ */
+.admin-progress-striped {
+  background-image: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.15) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.15) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 1rem 1rem;
+}
+
+.admin-progress-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  from {
+    background-position: 1rem 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}

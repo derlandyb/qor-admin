@@ -14,6 +14,17 @@ export interface AdminAccount {
   permissions: string[];
 }
 
+/**
+ * A `permissions` entry granted only to Super Admin accounts, per
+ * `AdminAuthController::permissionsFor()` (api/src/Http/Controllers/Api/
+ * AdminV1/AdminAuthController.php). Its own doc comment there calls this
+ * "UI hint only" — every capability it implies is independently
+ * re-enforced server-side by `guard.super-admin` — but it's still the
+ * one signal this app has for role-scoped UI, so it's named here rather
+ * than repeated as a string literal at each call site.
+ */
+export const SUPER_ADMIN_PERMISSION = "approvals.manage";
+
 export interface LoginResponse {
   data: AdminAccount;
 }

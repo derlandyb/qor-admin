@@ -80,3 +80,40 @@ describe("apiRequest", () => {
     expect(error).not.toBeInstanceOf(UnauthenticatedError);
   });
 });
+
+describe("apiRequest — same-origin mode (NEXT_PUBLIC_API_BASE_URL explicitly empty)", () => {
+  // AT23: the admin container's own Playwright browser (and, symmetrically,
+  // a host browser hitting the host-mapped admin port) must never build an
+  // absolute cross-container URL like http://api:8000/... — that's a
+  // different site than the page's own origin, so Sanctum's session cookie
+  // (set with no explicit Domain, per api/.env's SESSION_DOMAIN=null) would
+  // never be attached to it. Docker Compose sets NEXT_PUBLIC_API_BASE_URL=""
+  // so the browser instead calls its own origin, relatively, and
+  // next.config.ts's rewrites proxy that server-side to the api container.
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({ data: [] }), { status: 200 })));
+    document.cookie = "";
+    Object.defineProperty(window, "location", {
+      value: { ...window.location, href: "http://localhost:3000/eventos", origin: "http://localhost:3000" },
+      writable: true,
+    });
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "");
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  test("GIVEN NEXT_PUBLIC_API_BASE_URL is explicitly empty WHEN a request is built THEN it targets the page's own origin, not the http.ts default host", async () => {
+    vi.resetModules();
+    const { apiRequest: sameOriginApiRequest } = await import("./http");
+
+    await sameOriginApiRequest("/events");
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("http://localhost:3000/api/admin/v1/events");
+  });
+});

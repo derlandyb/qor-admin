@@ -2,10 +2,13 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   login,
   logout,
+  getMe,
   registerVenue,
   registerPromoter,
   updateVenueProfile,
+  getVenueProfile,
   updatePromoterProfile,
+  getPromoterProfile,
   getDashboard,
   getSubscription,
   listEvents,
@@ -154,6 +157,30 @@ describe("admin API client request builders", () => {
     const [url, init] = fetchMock.mock.calls.at(-1)!;
     expect(String(url)).toContain("/auth/logout");
     expect(init.method).toBe("POST");
+  });
+
+  test("GIVEN an authenticated session WHEN getMe() is called THEN it GETs /me", async () => {
+    await getMe();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/api/admin/v1/me");
+    expect(init.method ?? "GET").toBe("GET");
+  });
+
+  test("GIVEN a venue admin session WHEN getVenueProfile() is called THEN it GETs /venues/me", async () => {
+    await getVenueProfile();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/venues/me");
+    expect(init.method ?? "GET").toBe("GET");
+  });
+
+  test("GIVEN a promoter session WHEN getPromoterProfile() is called THEN it GETs /promoters/me", async () => {
+    await getPromoterProfile();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/promoters/me");
+    expect(init.method ?? "GET").toBe("GET");
   });
 
   test("GIVEN profile fields with no file WHEN updateVenueProfile() is called THEN it POSTs (spoofed PATCH) to /venues/me", async () => {

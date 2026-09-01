@@ -1,0 +1,40 @@
+/**
+ * QOR-ADMIN (Corona Tailwind) design tokens — design-system-admin.md §1–4.
+ * Fully sourced from the BootstrapDash "Corona Tailwind — Modern Vertical"
+ * demo, not NIGHTLIFE-GV. qor-admin has no light/dark toggle — this is a
+ * fixed dark theme, unlike the fan-facing apps.
+ */
+@theme {
+  /* §1.1 Surfaces */
+  --color-admin-bg-body: #000000;
+  --color-admin-bg-surface: #191c24;
+  --color-admin-text-primary: #ffffff;
+  --color-admin-text-secondary: #6c7293;
+  --color-admin-text-muted: #9c9fa6;
+
+  /* §1.2 Semantic accent palette */
+  --color-admin-primary: #0090e7;
+  --color-admin-secondary: #e4eaec;
+  --color-admin-success: #00d25b;
+  --color-admin-danger: #fc424a;
+  --color-admin-warning: #ffab00;
+  --color-admin-info: #8f5fe8;
+  --color-admin-light: #ffffff;
+  --color-admin-dark: #0d0d0d;
+
+  /* §2 Typography — no custom font, Tailwind's default system stack */
+  --font-admin-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* §3 Spacing & Radii */
+  --radius-admin-default: 6px; /* uniform card/button/badge/most-input radius */
+  --radius-admin-input-select: 2px; /* the one measured input type — do not assume 6px for every control */
+  --radius-admin-pill: 9999px;
+  --spacing-admin-sidebar-width: 244px;
+  --spacing-admin-button-min-width: 128px;
+
+  /* §4 Motion — MEASURED flat: only the sidebar animates, everything else snaps instantly */
+  --duration-admin-sidebar: 300ms;
+  --ease-admin-sidebar: ease-in-out;
+}

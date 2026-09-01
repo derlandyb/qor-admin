@@ -51,9 +51,10 @@ const PROMOTER_DRAFT: PromoterRegistrationDraft = {
 /**
  * design-system-admin.md §5.8 — dark-fill inputs, per-input-type radius, no
  * focus transition. Field sets sourced from api's RegisterVenueRequest /
- * RegisterPromoterRequest. Consent is captured here as a plain checkbox
- * (terms_accepted); the shared ConsentCapture audit-trail component (AT10)
- * is a page-level concern wired up in a follow-up session.
+ * RegisterPromoterRequest. terms_accepted is captured here as a plain
+ * checkbox — the shared ConsentCapture component (this repo's own copy)
+ * is a separate, page-level concern (its own richer pt-BR terms/privacy
+ * display) wired into the registration pages in a follow-up session.
  */
 export function RegistrationForm(props: RegistrationFormProps) {
   if (props.type === "venue") {

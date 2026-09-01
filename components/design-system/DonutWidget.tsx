@@ -1,4 +1,6 @@
-export type DonutSegmentColor = "success" | "primary" | "info" | "warning" | "danger";
+import { SEMANTIC_COLOR_HEX, type SemanticDataColor } from "./colors";
+
+export type DonutSegmentColor = SemanticDataColor;
 
 export interface DonutSegment {
   label: string;
@@ -11,14 +13,6 @@ export interface DonutWidgetProps {
   total: number;
   segments: DonutSegment[];
 }
-
-const SEGMENT_HEX: Record<DonutSegmentColor, string> = {
-  success: "#00D25B",
-  primary: "#0090E7",
-  info: "#8F5FE8",
-  warning: "#FFAB00",
-  danger: "#FC424A",
-};
 
 const SEGMENT_BG_CLASS: Record<DonutSegmentColor, string> = {
   success: "bg-admin-success",
@@ -40,7 +34,7 @@ export function DonutWidget({ title, total, segments }: DonutWidgetProps) {
     const share = sum === 0 ? 0 : segment.value / sum;
     const start = cursor;
     cursor += share * 360;
-    return `${SEGMENT_HEX[segment.color]} ${start}deg ${cursor}deg`;
+    return `${SEMANTIC_COLOR_HEX[segment.color]} ${start}deg ${cursor}deg`;
   });
 
   return (

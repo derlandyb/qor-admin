@@ -27,4 +27,29 @@ describe("ConsentCapture", () => {
     render(<ConsentCapture policyVersion="2.1" checked={false} onChange={vi.fn()} />);
     expect(screen.getByText(/versão 2\.1/)).toBeInTheDocument();
   });
+
+  test("GIVEN a termsUrl WHEN it renders THEN the consent text links out to it", () => {
+    render(
+      <ConsentCapture
+        policyVersion="1.0"
+        checked={false}
+        onChange={vi.fn()}
+        termsUrl="https://qor.app/termos"
+      />,
+    );
+    const link = screen.getByRole("link", { name: /termos de uso/i });
+    expect(link).toHaveAttribute("href", "https://qor.app/termos");
+  });
+
+  test("GIVEN a validation error WHEN it renders THEN the pt-BR error message is shown", () => {
+    render(
+      <ConsentCapture
+        policyVersion="1.0"
+        checked={false}
+        onChange={vi.fn()}
+        error="É necessário aceitar os termos de uso."
+      />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("É necessário aceitar os termos de uso.");
+  });
 });

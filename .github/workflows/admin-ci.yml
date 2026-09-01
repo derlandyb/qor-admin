@@ -38,8 +38,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Unit tests
-        run: npm run test
+      - name: Unit tests (with 80% coverage gate)
+        run: npm run test:coverage
 
   build:
     runs-on: ubuntu-latest

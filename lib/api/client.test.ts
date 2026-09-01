@@ -1,14 +1,28 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   login,
+  logout,
   registerVenue,
   registerPromoter,
+  updateVenueProfile,
+  updatePromoterProfile,
+  getDashboard,
+  getSubscription,
+  listEvents,
   decideAccountApproval,
   decideEventApproval,
   listPendingAccounts,
+  listPendingEvents,
   createEvent,
   editEvent,
   submitEventForReview,
+  duplicateEvent,
+  cancelEvent,
+  deleteEvent,
+  listPlans,
+  createPlan,
+  updatePlan,
+  deactivatePlan,
 } from "./client";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -131,5 +145,114 @@ describe("admin API client request builders", () => {
     const [url, init] = fetchMock.mock.calls.at(-1)!;
     expect(String(url)).toContain("/events/3/submit");
     expect(init.method).toBe("POST");
+  });
+
+  test("GIVEN a logged-in session WHEN logout() is called THEN it POSTs to /auth/logout", async () => {
+    await logout();
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/auth/logout");
+    expect(init.method).toBe("POST");
+  });
+
+  test("GIVEN profile fields with no file WHEN updateVenueProfile() is called THEN it POSTs (spoofed PATCH) to /venues/me", async () => {
+    await updateVenueProfile({ name: "Novo Nome" });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/venues/me");
+    expect(init.method).toBe("POST");
+    expect((init.body as FormData).get("_method")).toBe("PATCH");
+  });
+
+  test("GIVEN profile fields WHEN updatePromoterProfile() is called THEN it PATCHes /promoters/me as JSON", async () => {
+    await updatePromoterProfile({ instagram: "@djpromo" });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/promoters/me");
+    expect(init.method).toBe("PATCH");
+    expect(JSON.parse(init.body)).toEqual({ instagram: "@djpromo" });
+  });
+
+  test("GIVEN an organizer session WHEN getDashboard() is called THEN it GETs /dashboard", async () => {
+    await getDashboard();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/dashboard");
+  });
+
+  test("GIVEN an organizer session WHEN getSubscription() is called THEN it GETs /subscription", async () => {
+    await getSubscription();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/subscription");
+  });
+
+  test("GIVEN an organizer session WHEN listEvents() is called THEN it GETs /events", async () => {
+    await listEvents();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/api/admin/v1/events");
+    expect(init.method ?? "GET").toBe("GET");
+  });
+
+  test("GIVEN an event id and a new date WHEN duplicateEvent() is called THEN it POSTs to /events/:id/duplicate with starts_at", async () => {
+    await duplicateEvent(5, "2026-11-01T20:00:00-03:00");
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/events/5/duplicate");
+    expect(JSON.parse(init.body)).toEqual({ starts_at: "2026-11-01T20:00:00-03:00" });
+  });
+
+  test("GIVEN an event id WHEN cancelEvent() is called THEN it POSTs to /events/:id/cancel", async () => {
+    await cancelEvent(5);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/events/5/cancel");
+  });
+
+  test("GIVEN an event id WHEN deleteEvent() is called THEN it DELETEs /events/:id", async () => {
+    await deleteEvent(5);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/events/5");
+    expect(init.method).toBe("DELETE");
+  });
+
+  test("GIVEN a pending events page WHEN listPendingEvents() is called THEN it GETs /approvals/events with the page query param", async () => {
+    await listPendingEvents(3);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/approvals/events?page=3");
+  });
+
+  test("GIVEN a Super Admin session WHEN listPlans() is called THEN it GETs /plans", async () => {
+    await listPlans();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/plans");
+  });
+
+  test("GIVEN a plan payload WHEN createPlan() is called THEN it POSTs to /plans as JSON", async () => {
+    await createPlan({ name: "Pro", monthly_price: 49.9, publish_quota: 20 });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/plans");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ name: "Pro", monthly_price: 49.9, publish_quota: 20 });
+  });
+
+  test("GIVEN a plan id and payload WHEN updatePlan() is called THEN it PATCHes /plans/:id", async () => {
+    await updatePlan(1, { name: "Pro", monthly_price: 59.9, publish_quota: null });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/plans/1");
+    expect(init.method).toBe("PATCH");
+  });
+
+  test("GIVEN a plan id WHEN deactivatePlan() is called THEN it POSTs to /plans/:id/deactivate", async () => {
+    await deactivatePlan(1);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/plans/1/deactivate");
   });
 });

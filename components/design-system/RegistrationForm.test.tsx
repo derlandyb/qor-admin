@@ -46,4 +46,35 @@ describe("RegistrationForm (promoter)", () => {
     expect(screen.getByLabelText("Instagram")).toBeInTheDocument();
     expect(screen.queryByLabelText("Endereço")).not.toBeInTheDocument();
   });
+
+  test("GIVEN required fields left empty WHEN submitted THEN it blocks submit and shows pt-BR field errors", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<RegistrationForm type="promoter" onSubmit={onSubmit} />);
+
+    await user.click(screen.getByRole("button", { name: "Cadastrar" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText("É necessário aceitar os termos de uso.")).toBeInTheDocument();
+  });
+
+  test("GIVEN a fully filled valid promoter form WHEN submitted THEN onSubmit receives the values, including optional Instagram/TikTok", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<RegistrationForm type="promoter" onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("Nome"), "DJ Promo");
+    await user.type(screen.getByLabelText("Telefone de contato"), "27988888888");
+    await user.type(screen.getByLabelText("E-mail de contato"), "dj@promo.com");
+    await user.type(screen.getByLabelText("Instagram"), "@djpromo");
+    await user.type(screen.getByLabelText("TikTok"), "@djpromo");
+    await user.type(screen.getByLabelText("E-mail de cadastro"), "dj@promo.com");
+    await user.type(screen.getByLabelText("Senha"), "secret123");
+    await user.click(screen.getByLabelText("Aceito os termos de uso"));
+    await user.click(screen.getByRole("button", { name: "Cadastrar" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "DJ Promo", instagram: "@djpromo", terms_accepted: true }),
+    );
+  });
 });

@@ -1,4 +1,6 @@
-export type ProgressBarColor = "success" | "primary" | "info" | "warning" | "danger";
+import { SEMANTIC_COLOR_HEX, type SemanticDataColor } from "./colors";
+
+export type ProgressBarColor = SemanticDataColor;
 export type ProgressBarVariant = "plain" | "inner-label" | "outer-label" | "circular";
 
 export interface ProgressBarProps {
@@ -15,14 +17,6 @@ const FILL_CLASS: Record<ProgressBarColor, string> = {
   info: "bg-admin-info",
   warning: "bg-admin-warning",
   danger: "bg-admin-danger",
-};
-
-const STROKE_HEX: Record<ProgressBarColor, string> = {
-  success: "#00D25B",
-  primary: "#0090E7",
-  info: "#8F5FE8",
-  warning: "#FFAB00",
-  danger: "#FC424A",
 };
 
 function clamp(value: number): number {
@@ -51,7 +45,7 @@ export function ProgressBar({ value, color = "primary", variant = "plain", label
             cy="50"
             r={radius}
             fill="none"
-            stroke={STROKE_HEX[color]}
+            stroke={SEMANTIC_COLOR_HEX[color]}
             strokeWidth="10"
             strokeDasharray={circumference}
             strokeDashoffset={offset}

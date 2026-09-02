@@ -18,19 +18,11 @@
  * events. No venue-address defaulting here: this is editing an existing
  * event, not creating one, so EventForm's initialValues come straight from
  * the found event's own fields.
- *
- * AT31 — same at-limit gate as app/eventos/novo/page.tsx (MON-08, MON-18),
- * see that file's docblock.
  */
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventForm, type EventFormDraft } from "../../../../components/design-system/EventForm";
-import { QuotaUsageWidget } from "../../../../components/design-system/QuotaUsageWidget";
 import { useEvents } from "../../../../hooks/useOrganizerEvents";
-import { useOrganizerSubscription } from "../../../../hooks/useBilling";
-import { ApiError } from "../../../../lib/api/http";
-
-const UPGRADE_HREF = "/assinatura";
 
 interface EditEventPageProps {
   params: Promise<{ id: string }>;
@@ -47,10 +39,7 @@ function LoadingState() {
 export default function EditEventPage({ params }: EditEventPageProps) {
   const router = useRouter();
   const { events, loading: eventsLoading, error, edit } = useEvents();
-  const { usage, loading: usageLoading } = useOrganizerSubscription();
   const [id, setId] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [quotaExceeded, setQuotaExceeded] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -66,31 +55,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
   async function handleSubmit(values: EventFormDraft) {
     if (id === null) return;
-    setFormError(null);
-    setQuotaExceeded(false);
-    try {
-      await edit(Number(id), values);
-      router.push("/eventos");
-    } catch (err) {
-      if (err instanceof ApiError && err.code === "quota_exceeded") {
-        setQuotaExceeded(true);
-        return;
-      }
-      setFormError("Erro ao salvar o evento.");
-    }
+    await edit(Number(id), values);
+    router.push("/eventos");
   }
 
-  if (id === null || eventsLoading || usageLoading) {
+  if (id === null || eventsLoading) {
     return <LoadingState />;
-  }
-
-  if (usage?.is_at_limit || quotaExceeded) {
-    return (
-      <div className="flex flex-col gap-6 p-6">
-        <h1 className="text-2xl font-semibold text-admin-text-primary">Editar Evento</h1>
-        {usage && <QuotaUsageWidget usage={{ ...usage, is_at_limit: true }} upgradeHref={UPGRADE_HREF} />}
-      </div>
-    );
   }
 
   if (error) {
@@ -128,11 +98,6 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   return (
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold text-admin-text-primary">Editar Evento</h1>
-      {formError && (
-        <p role="alert" className="rounded-admin-default bg-admin-danger/15 px-3 py-2 text-sm text-admin-danger">
-          {formError}
-        </p>
-      )}
       <EventForm initialValues={initialValues} onSubmit={handleSubmit} submitLabel="Salvar Alterações" />
     </div>
   );

@@ -5,9 +5,10 @@ import { test, expect, type Page } from "@playwright/test";
  * new venue (confirms the free-plan Subscription auto-created on approval,
  * per api.md T100/AD-009), submit events up to the free plan's publish quota
  * (config('qor.billing.default_free_quota'), seeded to 5 by PlanSeeder —
- * confirms the usage counter increments), attempt a 6th (confirms the
- * at-limit gate blocks new event creation, AT31), then as Super Admin create
- * and edit a plan (AT30).
+ * confirms the usage counter increments), then create a 6th Draft (creation
+ * itself is never quota-gated — only SubmitEventForReview is) and confirm
+ * *submitting* it is rejected with the at-limit banner (AT31), then as
+ * Super Admin create and edit a plan (AT30).
  *
  * Same preconditions as mvp-core-smoke.spec.ts: `docker compose exec api php
  * artisan migrate:fresh --seed` for a known-fresh DB (AdminUserSeeder's
@@ -112,12 +113,25 @@ test("Monetization: free-plan auto-subscription -> quota increments on submit ->
     venuePage.getByText("Você atingiu o limite de publicações do seu plano"),
   ).toBeVisible();
 
-  // --- Step 5: a 6th event is blocked up front by the at-limit gate ---
+  // --- Step 5: a 6th event can still be drafted (creation isn't
+  // quota-gated), but submitting it for review is rejected ---
+  const sixthTitle = `Show Monetização E2E ${RUN_ID} #6`;
   await venuePage.goto("/eventos/novo");
+  await venuePage.getByLabel("Título").fill(sixthTitle);
+  await venuePage.getByLabel("Descrição").fill("Evento de teste criado pelo smoke test de monetização.");
+  await venuePage.getByLabel("Data e hora").fill(eventStartsAtLocal(36));
+  await venuePage.getByLabel("Gênero").fill("1");
+  await venuePage.getByLabel("Evento gratuito").check();
+  await venuePage.getByRole("button", { name: "Criar Evento" }).click();
+
+  await expect(venuePage).toHaveURL(/\/eventos$/);
+  const sixthRow = venuePage.getByRole("row", { name: new RegExp(sixthTitle) });
+  await expect(sixthRow).toBeVisible();
+  await sixthRow.getByRole("button", { name: "Enviar para revisão" }).click();
   await expect(
     venuePage.getByText("Você atingiu o limite de publicações do seu plano"),
   ).toBeVisible();
-  await expect(venuePage.getByLabel("Título")).not.toBeVisible();
+  await expect(sixthRow.getByText("Rascunho")).toBeVisible();
 
   // --- Step 6: Super Admin creates and edits a plan ---
   await adminPage.goto("/planos");

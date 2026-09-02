@@ -36,6 +36,8 @@ export class ApiError extends Error {
     public readonly status: number,
     message: string,
     public readonly errors?: Record<string, string[]>,
+    /** Machine-readable error code, e.g. `"quota_exceeded"` (STATE.md AD-009). */
+    public readonly code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -149,12 +151,16 @@ export async function apiRequest<T>(
       payload && typeof payload === "object" && "errors" in payload
         ? (payload as { errors: Record<string, string[]> }).errors
         : undefined;
+    const code =
+      payload && typeof payload === "object" && "code" in payload
+        ? String((payload as { code: unknown }).code)
+        : undefined;
 
     if (response.status === 401) {
       redirectToLogin();
       throw new UnauthenticatedError(message);
     }
-    throw new ApiError(response.status, message, errors);
+    throw new ApiError(response.status, message, errors, code);
   }
 
   return payload as T;

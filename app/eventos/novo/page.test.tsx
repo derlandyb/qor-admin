@@ -63,9 +63,22 @@ function promoterResponse(approvalStatus = "approved"): Response {
   });
 }
 
+function subscriptionResponse(isAtLimit: boolean): Response {
+  return jsonResponse({
+    data: {
+      plan_name: "Gratuito",
+      monthly_price: 0,
+      publish_quota: 5,
+      publishes_used_this_period: isAtLimit ? 5 : 2,
+      is_at_limit: isAtLimit,
+    },
+  });
+}
+
 function stubFetch(opts: {
   accountType: "venue_admin" | "promoter";
   approvalStatus?: string;
+  isAtLimit?: boolean;
   extra?: (url: string, init?: RequestInit) => Response | undefined;
 }) {
   const fetchMock = vi.fn().mockImplementation((input: string | URL, init?: RequestInit) => {
@@ -83,6 +96,9 @@ function stubFetch(opts: {
     }
     if (url.includes("/promoters/me")) {
       return Promise.resolve(promoterResponse(opts.approvalStatus ?? "approved"));
+    }
+    if (url.includes("/subscription")) {
+      return Promise.resolve(subscriptionResponse(opts.isAtLimit ?? false));
     }
     return Promise.resolve(jsonResponse({ message: "not found" }, 404));
   });
@@ -159,5 +175,52 @@ describe("app/eventos/novo/page.tsx (integration, real hooks + client + http sta
       (call) => String(call[0]).includes("/events") && (call[1] as RequestInit | undefined)?.method === "POST",
     );
     expect(createCall).toBeDefined();
+  });
+
+  test("GIVEN an organizer already at their publish-quota limit WHEN /eventos/novo mounts THEN it shows the at-limit banner instead of the form", async () => {
+    stubFetch({ accountType: "promoter", isAtLimit: true });
+
+    render(<NewEventPage />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByLabelText(/^título$/i)).not.toBeInTheDocument();
+  });
+
+  test("GIVEN quota is exceeded between page load and submit WHEN create rejects with quota_exceeded THEN it shows the at-limit banner instead of a generic error", async () => {
+    stubFetch({
+      accountType: "promoter",
+      extra: (url) => {
+        if (url.endsWith("/events") || url.includes("/api/admin/v1/events")) {
+          return jsonResponse(
+            { message: "Você atingiu o limite de publicações do seu plano", code: "quota_exceeded" },
+            422,
+          );
+        }
+        return undefined;
+      },
+    });
+
+    render(<NewEventPage />);
+
+    await screen.findByLabelText(/^título$/i);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/^título$/i), "Show Novo");
+    await user.type(screen.getByLabelText(/descrição/i), "Descrição do show novo.");
+    await user.type(screen.getByLabelText(/data e hora/i), "2099-12-31T22:00");
+    await user.selectOptions(screen.getByLabelText(/^cidade$/i), "vitoria");
+    await user.type(screen.getByLabelText(/gênero/i), "1");
+    await user.click(screen.getByLabelText(/evento gratuito/i));
+    await user.click(screen.getByRole("button", { name: /criar evento/i }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Erro ao criar o evento.")).not.toBeInTheDocument();
   });
 });

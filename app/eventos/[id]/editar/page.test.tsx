@@ -48,7 +48,23 @@ function baseEvent(overrides: Record<string, unknown>): Record<string, unknown> 
   };
 }
 
-function stubFetch(events: unknown[], extra?: (url: string, init?: RequestInit) => Response | undefined) {
+function subscriptionResponse(isAtLimit: boolean): Response {
+  return jsonResponse({
+    data: {
+      plan_name: "Gratuito",
+      monthly_price: 0,
+      publish_quota: 5,
+      publishes_used_this_period: isAtLimit ? 5 : 2,
+      is_at_limit: isAtLimit,
+    },
+  });
+}
+
+function stubFetch(
+  events: unknown[],
+  extra?: (url: string, init?: RequestInit) => Response | undefined,
+  isAtLimit = false,
+) {
   const fetchMock = vi.fn().mockImplementation((input: string | URL, init?: RequestInit) => {
     const url = String(input);
     if (url.includes("/sanctum/csrf-cookie")) {
@@ -56,6 +72,9 @@ function stubFetch(events: unknown[], extra?: (url: string, init?: RequestInit) 
     }
     const extraResponse = extra?.(url, init);
     if (extraResponse) return Promise.resolve(extraResponse);
+    if (url.includes("/subscription")) {
+      return Promise.resolve(subscriptionResponse(isAtLimit));
+    }
     if (url.includes("/events")) {
       return Promise.resolve(jsonResponse({ data: events }));
     }
@@ -118,5 +137,46 @@ describe("app/eventos/[id]/editar/page.tsx (integration, real hooks + client + h
       (call) => String(call[0]).includes("/events/1") && (call[1] as RequestInit | undefined)?.method === "POST",
     );
     expect(editCall).toBeDefined();
+  });
+
+  test("GIVEN an organizer already at their publish-quota limit WHEN /eventos/1/editar mounts THEN it shows the at-limit banner instead of the form", async () => {
+    stubFetch([baseEvent({ id: 1, title: "Show A" })], undefined, true);
+
+    render(<EditEventPage params={Promise.resolve({ id: "1" })} />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByLabelText(/^título$/i)).not.toBeInTheDocument();
+  });
+
+  test("GIVEN quota is exceeded between page load and submit WHEN edit rejects with quota_exceeded THEN it shows the at-limit banner instead of a generic error", async () => {
+    const events = [baseEvent({ id: 1, title: "Show A" })];
+    stubFetch(events, (url, init) => {
+      if (url.includes("/events/1") && init?.method === "POST") {
+        return jsonResponse(
+          { message: "Você atingiu o limite de publicações do seu plano", code: "quota_exceeded" },
+          422,
+        );
+      }
+      return undefined;
+    });
+
+    render(<EditEventPage params={Promise.resolve({ id: "1" })} />);
+
+    const titleInput = await screen.findByLabelText(/^título$/i);
+    const user = userEvent.setup();
+    await user.clear(titleInput);
+    await user.type(titleInput, "Show A Editado");
+    await user.click(screen.getByRole("button", { name: /salvar alterações/i }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("Erro ao salvar o evento.")).not.toBeInTheDocument();
   });
 });

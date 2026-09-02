@@ -17,7 +17,9 @@ export type KnownStatus =
   | "pending_review"
   | "published"
   | "cancelled"
-  | "ended";
+  | "ended"
+  | "active"
+  | "inactive";
 
 export const STATUS_COLOR: Record<KnownStatus, StatusColor> = {
   draft: "warning",
@@ -26,11 +28,13 @@ export const STATUS_COLOR: Record<KnownStatus, StatusColor> = {
   published: "success",
   approved: "success",
   suspension_lifted: "success",
+  active: "success",
   rejected: "danger",
   suspended: "danger",
   cancelled: "danger",
   force_cancelled: "danger",
   ended: "info",
+  inactive: "secondary",
 };
 
 export const STATUS_LABEL: Record<KnownStatus, string> = {
@@ -40,9 +44,11 @@ export const STATUS_LABEL: Record<KnownStatus, string> = {
   published: "Publicado",
   approved: "Aprovado",
   suspension_lifted: "Suspensão Removida",
+  active: "Ativo",
   rejected: "Rejeitado",
   suspended: "Suspenso",
   cancelled: "Cancelado",
   force_cancelled: "Cancelado",
   ended: "Encerrado",
+  inactive: "Inativo",
 };

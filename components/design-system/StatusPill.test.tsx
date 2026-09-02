@@ -12,6 +12,8 @@ describe("StatusPill", () => {
     ["suspended", "bg-admin-danger", "Suspenso"],
     ["cancelled", "bg-admin-danger", "Cancelado"],
     ["ended", "bg-admin-info", "Encerrado"],
+    ["active", "bg-admin-success", "Ativo"],
+    ["inactive", "bg-admin-secondary", "Inativo"],
   ] as const)(
     "GIVEN status %s WHEN it renders THEN it uses %s and shows the label %s",
     (status, expectedClass, expectedLabel) => {

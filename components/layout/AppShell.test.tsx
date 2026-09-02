@@ -108,4 +108,22 @@ describe("AppShell (integration, real useSession + client + http stack)", () => 
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith("/entrar"));
     expect(screen.queryByText("Conteúdo protegido")).not.toBeInTheDocument();
   });
+
+  test.each(["/cadastro/local", "/cadastro/promotor"])(
+    "GIVEN an unauthenticated visitor WHEN AppShell renders %s THEN it shows the page bare, with no redirect and no chrome",
+    async (path) => {
+      currentPathname = path;
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(jsonResponse({ message: "Não autenticado." }, 401)));
+
+      render(
+        <AppShell>
+          <p>Formulário de cadastro</p>
+        </AppShell>,
+      );
+
+      expect(screen.getByText("Formulário de cadastro")).toBeInTheDocument();
+      expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+      expect(replaceMock).not.toHaveBeenCalled();
+    },
+  );
 });

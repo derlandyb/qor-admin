@@ -3,12 +3,14 @@
 /**
  * AT22 — wires Sidebar/Topbar around every authenticated page, using
  * useSession()'s resolved account_type for role-aware nav (navItemsForRole,
- * already built). /entrar renders bare (no chrome — it IS the auth surface).
- * An unauthenticated visitor anywhere else is redirected to /entrar; the
- * client's existing UnauthenticatedError/redirectToLogin() (lib/api/http.ts)
- * already does this as a side effect of any 401 response, but the very
- * first render before any API call has fired needs its own redirect once
- * useSession() itself resolves account: null.
+ * already built). PUBLIC_PATHS (the login page, plus the two self-
+ * registration pages a Venue/Promoter reaches before any account exists at
+ * all) render bare — no chrome, no auth redirect. An unauthenticated
+ * visitor anywhere else is redirected to /entrar; the client's existing
+ * UnauthenticatedError/redirectToLogin() (lib/api/http.ts) already does
+ * this as a side effect of any 401 response, but the very first render
+ * before any API call has fired needs its own redirect once useSession()
+ * itself resolves account: null.
  */
 import type { ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,22 +18,22 @@ import { useEffect } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { useSession } from "../../hooks/useSession";
-import { LOGIN_PATH } from "../../lib/api/http";
+import { LOGIN_PATH, PUBLIC_PATHS } from "../../lib/api/http";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { account, loading } = useSession();
 
-  const isLoginPage = pathname === LOGIN_PATH;
+  const isPublicPage = PUBLIC_PATHS.includes(pathname);
 
   useEffect(() => {
-    if (!isLoginPage && !loading && !account) {
+    if (!isPublicPage && !loading && !account) {
       router.replace(LOGIN_PATH);
     }
-  }, [isLoginPage, loading, account, router]);
+  }, [isPublicPage, loading, account, router]);
 
-  if (isLoginPage) {
+  if (isPublicPage) {
     return <>{children}</>;
   }
 

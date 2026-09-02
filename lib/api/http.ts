@@ -69,9 +69,19 @@ async function ensureCsrfCookie(): Promise<void> {
 /** Admin login page (design-system-admin.md §5.11 — built in AT15, a later session). */
 export const LOGIN_PATH = "/entrar";
 
+/**
+ * Routes reachable with no admin account at all — the login page itself,
+ * plus the two self-registration pages a Venue/Promoter fills out before
+ * any account exists. A 401 from useSession()'s background `/me` check is
+ * the expected, normal state on every one of these, never something to
+ * bounce away from. Single source of truth — components/layout/AppShell.tsx
+ * imports this instead of re-declaring its own list.
+ */
+export const PUBLIC_PATHS = [LOGIN_PATH, "/cadastro/local", "/cadastro/promotor"];
+
 function redirectToLogin(): void {
   if (typeof window === "undefined") return;
-  if (window.location.pathname === LOGIN_PATH) return;
+  if (PUBLIC_PATHS.includes(window.location.pathname)) return;
   // Fired from plain fetch-response handling, outside React's render/event
   // lifecycle, so `useRouter()`/`redirect()` aren't available here.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination

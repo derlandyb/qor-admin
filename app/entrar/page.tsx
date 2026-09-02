@@ -6,9 +6,13 @@
  * social-login button: admin/venue/promoter accounts are email/password
  * only (ARCHITECTURE §2). Password recovery is an unresolved product gap
  * (.specs/project/STATE.md) — the "esqueci minha senha" link is a dead
- * placeholder for now.
+ * placeholder for now. "Manter conectado" is likewise UI-only for now —
+ * §5.11's own control, kept for visual fidelity, but there's no backend
+ * variable-session-duration support yet (SESSION_LIFETIME is a single
+ * fixed config value) — same "documented placeholder" treatment as the
+ * password-recovery link above, not a functional gap unique to this page.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "../../components/design-system/Button";
@@ -27,12 +31,13 @@ export default function LoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
-  if (account) {
-    router.push("/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    if (account) {
+      router.push("/dashboard");
+    }
+  }, [account, router]);
 
-  if (sessionLoading) {
+  if (account || sessionLoading) {
     return null;
   }
 

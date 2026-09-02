@@ -1,4 +1,9 @@
-import type { RegisterVenuePayload, RegisterPromoterPayload, CreateEventFields } from "../../lib/api/client";
+import type {
+  RegisterVenuePayload,
+  RegisterPromoterPayload,
+  CreateEventFields,
+  PlanPayload,
+} from "../../lib/api/client";
 
 export type FieldErrors = Record<string, string>;
 
@@ -56,5 +61,36 @@ export function validateEventFields(values: Partial<CreateEventFields>): FieldEr
   if (!values.is_free && !values.ticket_url?.trim()) {
     errors.ticket_url = "O link do ingresso é obrigatório para eventos pagos.";
   }
+  return errors;
+}
+
+/**
+ * qor-api's CreatePlanRequest/UpdatePlanRequest currently validate
+ * publish_quota as a required, non-nullable integer (min:0) — the
+ * "unlimited" (null) case the Plan/Subscription domain model documents
+ * isn't actually reachable through this endpoint yet (see STATE.md Todos).
+ * This form therefore requires it too, rather than offering an
+ * "unlimited" toggle the backend would reject.
+ */
+export function validatePlanFields(values: Partial<PlanPayload>): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!values.name?.trim()) errors.name = REQUIRED;
+
+  if (values.monthly_price === undefined || values.monthly_price === null) {
+    errors.monthly_price = "O preço mensal é obrigatório";
+  } else if (values.monthly_price < 0) {
+    errors.monthly_price = "O preço mensal deve ser maior ou igual a zero.";
+  }
+
+  if (values.annual_price !== undefined && values.annual_price !== null && values.annual_price < 0) {
+    errors.annual_price = "O preço anual deve ser maior ou igual a zero.";
+  }
+
+  if (values.publish_quota === undefined || values.publish_quota === null) {
+    errors.publish_quota = REQUIRED;
+  } else if (values.publish_quota < 0) {
+    errors.publish_quota = "A cota de publicações deve ser maior ou igual a zero.";
+  }
+
   return errors;
 }

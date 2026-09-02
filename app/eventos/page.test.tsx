@@ -79,10 +79,23 @@ function baseEvent(overrides: Record<string, unknown>): Record<string, unknown> 
   };
 }
 
+function subscriptionResponse(isAtLimit: boolean): Response {
+  return jsonResponse({
+    data: {
+      plan_name: "Gratuito",
+      monthly_price: 0,
+      publish_quota: 5,
+      publishes_used_this_period: isAtLimit ? 5 : 2,
+      is_at_limit: isAtLimit,
+    },
+  });
+}
+
 function stubFetch(opts: {
   accountType: "venue_admin" | "promoter";
   approvalStatus: string;
   events: unknown[];
+  isAtLimit?: boolean;
   extra?: (url: string, init?: RequestInit) => Response | undefined;
 }) {
   const fetchMock = vi.fn().mockImplementation((input: string | URL, init?: RequestInit) => {
@@ -112,6 +125,9 @@ function stubFetch(opts: {
           },
         }),
       );
+    }
+    if (url.includes("/subscription")) {
+      return Promise.resolve(subscriptionResponse(opts.isAtLimit ?? false));
     }
     if (url.includes("/events")) {
       return Promise.resolve(eventsResponse(opts.events));
@@ -189,6 +205,50 @@ describe("app/eventos/page.tsx (integration, real hooks + client + http stack)",
       const submitCall = fetchMock.mock.calls.find((call) => String(call[0]).includes("/events/5/submit"));
       expect(submitCall).toBeDefined();
     });
+  });
+
+  test("GIVEN an organizer already at their publish-quota limit WHEN /eventos mounts THEN it shows the at-limit banner without hiding the list", async () => {
+    const events = [baseEvent({ id: 1, title: "Show Rascunho", status: "draft" })];
+    stubFetch({ accountType: "venue_admin", approvalStatus: "approved", events, isAtLimit: true });
+
+    render(<EventsPage />);
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Show Rascunho")).toBeInTheDocument();
+    expect(screen.getByText(/\+ novo evento/i)).toBeInTheDocument();
+  });
+
+  test("GIVEN a draft event WHEN 'Enviar para revisão' rejects with quota_exceeded THEN it shows the at-limit banner instead of silently failing", async () => {
+    const events = [baseEvent({ id: 5, title: "Show Rascunho", status: "draft" })];
+    stubFetch({
+      accountType: "venue_admin",
+      approvalStatus: "approved",
+      events,
+      extra: (url) => {
+        if (url.includes("/events/5/submit")) {
+          return jsonResponse(
+            { message: "Você atingiu o limite de publicações do seu plano", code: "quota_exceeded" },
+            422,
+          );
+        }
+        return undefined;
+      },
+    });
+
+    render(<EventsPage />);
+
+    await waitFor(() => expect(screen.getByText("Show Rascunho")).toBeInTheDocument());
+    await userEvent.click(screen.getByText(/enviar para revisão/i));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText(/Você atingiu o limite de publicações do seu plano/),
+      ).toBeInTheDocument(),
+    );
   });
 
   test("GIVEN the events request fails WHEN /eventos mounts THEN it renders the pt-BR error message", async () => {

@@ -33,6 +33,18 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/eventos",
     roles: ["venue_admin", "promoter"],
   },
+  {
+    key: "plans",
+    label: "Planos",
+    href: "/planos",
+    roles: ["super_admin"],
+  },
+  {
+    key: "subscription",
+    label: "Assinatura",
+    href: "/assinatura",
+    roles: ["venue_admin", "promoter"],
+  },
 ];
 
 export function navItemsForRole(role: AdminRole): NavItem[] {

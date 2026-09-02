@@ -63,6 +63,18 @@ describe("apiRequest", () => {
     });
   });
 
+  test("GIVEN a 422 response with a machine-readable code WHEN the request fails THEN ApiError exposes that code", async () => {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ message: "Você atingiu o limite de publicações do seu plano", code: "quota_exceeded" }, 422),
+    );
+
+    await expect(apiRequest("/events/1/submit", { method: "POST" })).rejects.toMatchObject({
+      status: 422,
+      code: "quota_exceeded",
+    });
+  });
+
   test("GIVEN a 401 response WHEN the request fails THEN it throws UnauthenticatedError and redirects to the admin login route", async () => {
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     fetchMock.mockResolvedValueOnce(jsonResponse({ message: "Não autenticado." }, 401));

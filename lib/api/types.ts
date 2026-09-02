@@ -13,6 +13,14 @@ export interface AdminAccount {
   permissions: string[];
 }
 
+/** `AdminRole` (`components/layout/nav-items.ts`) mirrors this value set 1:1. */
+export type AccountType = "super_admin" | "venue_admin" | "promoter";
+
+/** `GET /api/admin/v1/me` — session identity, re-fetched on every page load since the SPA never persists it client-side (ARCHITECTURE §2). */
+export interface AdminSessionAccount extends AdminAccount {
+  account_type: AccountType;
+}
+
 export interface Venue {
   id: number;
   name: string;

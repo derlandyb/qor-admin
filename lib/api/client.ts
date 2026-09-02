@@ -6,6 +6,7 @@
 import { apiRequest } from "./http";
 import type {
   AdminAccount,
+  AdminSessionAccount,
   ApprovalDecision,
   DashboardEvent,
   DataEnvelope,
@@ -37,6 +38,11 @@ export function login(payload: LoginPayload) {
 
 export function logout() {
   return apiRequest<{ message: string }>("/auth/logout", { method: "POST" });
+}
+
+/** Re-fetched on every page load — the SPA never persists session/role state client-side (ARCHITECTURE §2). */
+export function getMe() {
+  return apiRequest<DataEnvelope<AdminSessionAccount>>("/me");
 }
 
 // --- Venue registration/profile ---
@@ -78,6 +84,10 @@ export function updateVenueProfile(fields: UpdateVenueProfileFields) {
   });
 }
 
+export function getVenueProfile() {
+  return apiRequest<DataEnvelope<Venue>>("/venues/me");
+}
+
 // --- Promoter registration/profile ---
 
 export interface RegisterPromoterPayload {
@@ -111,6 +121,10 @@ export function updatePromoterProfile(fields: UpdatePromoterProfileFields) {
     method: "PATCH",
     json: fields,
   });
+}
+
+export function getPromoterProfile() {
+  return apiRequest<DataEnvelope<Promoter>>("/promoters/me");
 }
 
 // --- Dashboard / subscription (organizer) ---

@@ -11,10 +11,25 @@
  * httpOnly session cookie is the only credential this client uses.
  */
 
-const API_BASE_URL =
-  typeof process !== "undefined" && process.env.NEXT_PUBLIC_API_BASE_URL
-    ? process.env.NEXT_PUBLIC_API_BASE_URL
-    : "http://localhost:8000";
+/**
+ * "" (explicitly set, not just falsy-default) means "same origin" — the
+ * browser must never build an absolute cross-container URL like
+ * http://api:8000/..., since that's a different site than the page's own
+ * origin and Sanctum's session cookie (SESSION_DOMAIN=null) wouldn't be
+ * attached to it. Docker Compose sets NEXT_PUBLIC_API_BASE_URL="" for this
+ * reason; next.config.ts's rewrites proxy the relative request server-side
+ * to the api container. Undefined (not configured at all, e.g. a bare
+ * `vitest`/analysis run outside Docker) falls back to the historical
+ * localhost:8000 default.
+ */
+const configuredBaseUrl =
+  typeof process !== "undefined" ? process.env.NEXT_PUBLIC_API_BASE_URL : undefined;
+const API_BASE_URL = configuredBaseUrl !== undefined ? configuredBaseUrl : "http://localhost:8000";
+
+function resolveBaseUrl(): string {
+  if (API_BASE_URL) return API_BASE_URL;
+  return typeof window !== "undefined" ? window.location.origin : "";
+}
 
 export class ApiError extends Error {
   constructor(
@@ -45,7 +60,7 @@ let csrfBootstrapped = false;
 
 async function ensureCsrfCookie(): Promise<void> {
   if (csrfBootstrapped) return;
-  await fetch(`${API_BASE_URL}/sanctum/csrf-cookie`, {
+  await fetch(`${resolveBaseUrl()}/sanctum/csrf-cookie`, {
     credentials: "include",
   });
   csrfBootstrapped = true;
@@ -54,9 +69,19 @@ async function ensureCsrfCookie(): Promise<void> {
 /** Admin login page (design-system-admin.md §5.11 — built in AT15, a later session). */
 export const LOGIN_PATH = "/entrar";
 
+/**
+ * Routes reachable with no admin account at all — the login page itself,
+ * plus the two self-registration pages a Venue/Promoter fills out before
+ * any account exists. A 401 from useSession()'s background `/me` check is
+ * the expected, normal state on every one of these, never something to
+ * bounce away from. Single source of truth — components/layout/AppShell.tsx
+ * imports this instead of re-declaring its own list.
+ */
+export const PUBLIC_PATHS = [LOGIN_PATH, "/cadastro/local", "/cadastro/promotor"];
+
 function redirectToLogin(): void {
   if (typeof window === "undefined") return;
-  if (window.location.pathname === LOGIN_PATH) return;
+  if (PUBLIC_PATHS.includes(window.location.pathname)) return;
   // Fired from plain fetch-response handling, outside React's render/event
   // lifecycle, so `useRouter()`/`redirect()` aren't available here.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
@@ -75,7 +100,7 @@ export interface RequestOptions {
 }
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
-  const url = new URL(`${API_BASE_URL}/api/admin/v1${path}`);
+  const url = new URL(`${resolveBaseUrl()}/api/admin/v1${path}`);
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value !== undefined) url.searchParams.set(key, String(value));

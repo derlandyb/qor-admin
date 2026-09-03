@@ -1,11 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * AT23 — runs exclusively inside the admin container (`make e2e-admin`,
- * see root Makefile) against the already-running `next dev` process on
- * this same container's localhost:3000, never on the host. The Next dev
- * server is always up already (it's the container's own CMD), so no
- * `webServer` block is configured here — this suite assumes the full
+ * AT23 — runs in the dedicated `admin-e2e` container (`make e2e-admin`,
+ * see root Makefile), built from `Dockerfile.e2e`, never on the host.
+ * It reaches the `admin` service's `next dev` process over the Compose
+ * network via `PLAYWRIGHT_BASE_URL` (falls back to localhost:3000 for
+ * anyone running Playwright by hand inside the admin dev container).
+ * No `webServer` block is configured — this suite assumes the full
  * `make up` stack (api/admin/db/minio) is already running.
  */
 export default defineConfig({
@@ -15,7 +16,7 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
   },
   projects: [

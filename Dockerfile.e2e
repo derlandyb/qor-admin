@@ -1,0 +1,14 @@
+FROM node:20-slim
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+# Playwright's own Chromium build + OS deps — this image exists solely to
+# run `make e2e-admin`'s Playwright suite; the regular admin/Dockerfile
+# stays free of this cost since every `make up` rebuilds it.
+RUN npx playwright install --with-deps chromium
+
+COPY . .
+
+CMD ["npx", "playwright", "test"]

@@ -101,4 +101,9 @@ describe("validateEventFields", () => {
     const errors = validateEventFields({ ...validFree, genre_id: 0 });
     expect(errors.genre_id).toBe("Este campo é obrigatório.");
   });
+
+  test("GIVEN a negative genre_id WHEN validated THEN it is rejected as required", () => {
+    const errors = validateEventFields({ ...validFree, genre_id: -1 });
+    expect(errors.genre_id).toBe("Este campo é obrigatório.");
+  });
 });

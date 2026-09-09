@@ -33,7 +33,14 @@ export default function NewEventPage() {
       await create(values);
       router.push("/eventos");
     } catch (err) {
-      setFormError(err instanceof ApiError ? err.message : "Erro ao criar o evento.");
+      if (err instanceof ApiError) {
+        // No per-field error UI here (unlike entrar/page.tsx's fieldErrors) — EventForm only
+        // renders its own client-side validateEventFields() errors, so a Laravel validation
+        // bag (err.errors) is surfaced as a single joined message instead of being dropped.
+        setFormError(err.errors ? Object.values(err.errors).flat().join(" ") : err.message);
+      } else {
+        setFormError("Erro ao criar o evento.");
+      }
     }
   }
 

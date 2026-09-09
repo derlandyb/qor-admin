@@ -161,4 +161,33 @@ describe("app/eventos/novo/page.tsx (integration, real hooks + client + http sta
     );
     expect(createCall).toBeDefined();
   });
+
+  test("GIVEN the API rejects the create with a domain error WHEN submitted THEN the real error message is shown instead of a generic one", async () => {
+    stubFetch({
+      accountType: "promoter",
+      extra: (url) => {
+        if (url.endsWith("/events") || url.includes("/api/admin/v1/events")) {
+          return jsonResponse({ message: "O endereço é obrigatório." }, 422);
+        }
+        return undefined;
+      },
+    });
+
+    render(<NewEventPage />);
+
+    await screen.findByLabelText(/^título$/i);
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/^título$/i), "Show Novo");
+    await user.type(screen.getByLabelText(/descrição/i), "Descrição do show novo.");
+    await user.type(screen.getByLabelText(/data e hora/i), "2099-12-31T22:00");
+    await user.selectOptions(screen.getByLabelText(/^cidade$/i), "vitoria");
+    await user.type(screen.getByLabelText(/gênero/i), "1");
+    await user.type(screen.getByLabelText(/^endereço/i), "Praça Central");
+    await user.click(screen.getByLabelText(/evento gratuito/i));
+
+    await user.click(screen.getByRole("button", { name: /criar evento/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("O endereço é obrigatório.");
+    expect(pushMock).not.toHaveBeenCalled();
+  });
 });

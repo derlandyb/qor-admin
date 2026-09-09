@@ -96,4 +96,9 @@ describe("validateEventFields", () => {
     expect(errors.city).toBeDefined();
     expect(errors.genre_id).toBeDefined();
   });
+
+  test("GIVEN genre_id: 0 (the form's untouched default) WHEN validated THEN it is rejected as required", () => {
+    const errors = validateEventFields({ ...validFree, genre_id: 0 });
+    expect(errors.genre_id).toBe("Este campo é obrigatório.");
+  });
 });

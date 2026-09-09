@@ -20,6 +20,21 @@ describe("EventForm", () => {
     ).toBeInTheDocument();
   });
 
+  test("GIVEN the Gênero field is left untouched WHEN submitted THEN it blocks submit with the genre_id error", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(<EventForm onSubmit={onSubmit} />);
+
+    await user.type(screen.getByLabelText("Título"), "Show");
+    await user.type(screen.getByLabelText("Descrição"), "desc");
+    await user.type(screen.getByLabelText("Data e hora"), "2026-11-01T20:00");
+    await user.click(screen.getByLabelText("Evento gratuito"));
+    await user.click(screen.getByRole("button", { name: "Salvar" }));
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByText("Este campo é obrigatório.")).toBeInTheDocument();
+  });
+
   test("GIVEN a free event toggle WHEN checked THEN the ticket link field disappears", async () => {
     const user = userEvent.setup();
     render(<EventForm onSubmit={vi.fn()} />);

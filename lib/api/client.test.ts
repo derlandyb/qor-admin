@@ -26,6 +26,11 @@ import {
   createPlan,
   updatePlan,
   deactivatePlan,
+  listGenres,
+  createGenre,
+  updateGenre,
+  activateGenre,
+  deactivateGenre,
 } from "./client";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -282,5 +287,42 @@ describe("admin API client request builders", () => {
     await deactivatePlan(1);
     const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
     expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/plans/1/deactivate");
+  });
+
+  test("GIVEN an admin-guard session WHEN listGenres() is called THEN it GETs /genres", async () => {
+    await listGenres();
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/genres");
+  });
+
+  test("GIVEN a genre payload WHEN createGenre() is called THEN it POSTs to /genres as JSON", async () => {
+    await createGenre({ name: "Rock" });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/genres");
+    expect(init.method).toBe("POST");
+    expect(JSON.parse(init.body)).toEqual({ name: "Rock" });
+  });
+
+  test("GIVEN a genre id and payload WHEN updateGenre() is called THEN it PATCHes /genres/:id", async () => {
+    await updateGenre(1, { name: "Rock Nacional" });
+
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    const [url, init] = fetchMock.mock.calls.at(-1)!;
+    expect(String(url)).toContain("/genres/1");
+    expect(init.method).toBe("PATCH");
+  });
+
+  test("GIVEN a genre id WHEN activateGenre() is called THEN it POSTs to /genres/:id/activate", async () => {
+    await activateGenre(1);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/genres/1/activate");
+  });
+
+  test("GIVEN a genre id WHEN deactivateGenre() is called THEN it POSTs to /genres/:id/deactivate", async () => {
+    await deactivateGenre(1);
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    expect(String(fetchMock.mock.calls.at(-1)![0])).toContain("/genres/1/deactivate");
   });
 });

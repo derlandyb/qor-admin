@@ -32,7 +32,7 @@ function makeEventsPage(overrides?: Partial<Paginated<Event>>): Paginated<Event>
         starts_at: "2026-01-01",
         city: "vitoria" as never,
         genre_id: 1,
-        address: null,
+        address: "Rua das Flores, 100",
         is_free: false,
         ticket_url: null,
         capacity: null,

@@ -19,6 +19,7 @@ import { OrganizerBlockedNotice } from "../../../components/design-system/Organi
 import { useSession } from "../../../hooks/useSession";
 import { useEvents } from "../../../hooks/useOrganizerEvents";
 import { isOrganizerBlocked } from "../../../lib/organizer-approval";
+import { ApiError } from "../../../lib/api/http";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -31,8 +32,15 @@ export default function NewEventPage() {
     try {
       await create(values);
       router.push("/eventos");
-    } catch {
-      setFormError("Erro ao criar o evento.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        // No per-field error UI here (unlike entrar/page.tsx's fieldErrors) — EventForm only
+        // renders its own client-side validateEventFields() errors, so a Laravel validation
+        // bag (err.errors) is surfaced as a single joined message instead of being dropped.
+        setFormError(err.errors ? Object.values(err.errors).flat().join(" ") : err.message);
+      } else {
+        setFormError("Erro ao criar o evento.");
+      }
     }
   }
 

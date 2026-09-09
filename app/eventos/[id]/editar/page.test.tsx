@@ -119,4 +119,25 @@ describe("app/eventos/[id]/editar/page.tsx (integration, real hooks + client + h
     );
     expect(editCall).toBeDefined();
   });
+
+  test("GIVEN the API rejects the edit WHEN submitted THEN the real error message is shown instead of crashing", async () => {
+    const events = [baseEvent({ id: 1, title: "Show A" })];
+    stubFetch(events, (url, init) => {
+      if (url.includes("/events/1") && init?.method === "POST") {
+        return jsonResponse({ message: "O endereço é obrigatório." }, 422);
+      }
+      return undefined;
+    });
+
+    render(<EditEventPage params={Promise.resolve({ id: "1" })} />);
+
+    const titleInput = await screen.findByLabelText(/^título$/i);
+    const user = userEvent.setup();
+    await user.clear(titleInput);
+    await user.type(titleInput, "Show A Editado");
+    await user.click(screen.getByRole("button", { name: /salvar alterações/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("O endereço é obrigatório.");
+    expect(pushMock).not.toHaveBeenCalled();
+  });
 });

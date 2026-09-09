@@ -57,7 +57,10 @@ export function validateEventFields(values: Partial<CreateEventFields>): FieldEr
   if (!values.description?.trim()) errors.description = REQUIRED;
   if (!values.starts_at?.trim()) errors.starts_at = REQUIRED;
   if (!values.city) errors.city = REQUIRED;
-  if (values.genre_id === undefined || values.genre_id === null) errors.genre_id = REQUIRED;
+  if (!values.address?.trim()) errors.address = REQUIRED;
+  if (values.genre_id === undefined || values.genre_id === null || values.genre_id <= 0) {
+    errors.genre_id = REQUIRED;
+  }
   if (!values.is_free && !values.ticket_url?.trim()) {
     errors.ticket_url = "O link do ingresso é obrigatório para eventos pagos.";
   }

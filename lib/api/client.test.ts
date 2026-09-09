@@ -122,6 +122,7 @@ describe("admin API client request builders", () => {
       starts_at: "2026-10-01T20:00:00-03:00",
       city: "vitoria",
       genre_id: 1,
+      address: "Rua das Flores, 100",
       is_free: false,
     });
 

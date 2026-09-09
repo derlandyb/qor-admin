@@ -40,6 +40,12 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["super_admin"],
   },
   {
+    key: "genres",
+    label: "Gêneros",
+    href: "/generos",
+    roles: ["super_admin"],
+  },
+  {
     key: "subscription",
     label: "Assinatura",
     href: "/assinatura",

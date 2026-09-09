@@ -27,8 +27,19 @@ const DEFAULT_DRAFT: EventFormDraft = {
   notes: "",
 };
 
+export interface GenreOption {
+  value: number;
+  label: string;
+}
+
 export interface EventFormProps {
   initialValues?: Partial<EventFormDraft>;
+  /**
+   * Fed by the parent page's useGenres() (filtered to is_active), same
+   * division of labor as CITY_OPTIONS is a static local constant — this
+   * form doesn't fetch remote data itself, its callers own that.
+   */
+  genreOptions: GenreOption[];
   onSubmit: (values: EventFormDraft) => void;
   submitLabel?: string;
 }
@@ -40,14 +51,8 @@ export interface EventFormProps {
  * every event has a non-null address (venue organizers get it defaulted via
  * `initialValues`; promoters must fill it in themselves, which this field's
  * validation now enforces instead of silently accepting a blank one).
- * Genre is a DB-backed lookup table (ARCHITECTURE §14.1), so this form takes
- * a raw genre_id for now — NOT because AT12's hooks were missing (they
- * landed in this same PR), but because qor-api has no genre-list endpoint
- * at all yet (neither /api/v1 nor /api/admin/v1) for a picker to fetch
- * from. A real picker needs that endpoint built first — flagged in
- * .specs/project/STATE.md's Todos.
  */
-export function EventForm({ initialValues, onSubmit, submitLabel = "Salvar" }: EventFormProps) {
+export function EventForm({ initialValues, genreOptions, onSubmit, submitLabel = "Salvar" }: EventFormProps) {
   const [values, setValues] = useState<EventFormDraft>({ ...DEFAULT_DRAFT, ...initialValues });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -90,11 +95,11 @@ export function EventForm({ initialValues, onSubmit, submitLabel = "Salvar" }: E
         error={errors.city}
         onChange={(e) => setValues({ ...values, city: e.target.value as typeof values.city })}
       />
-      <TextField
+      <SelectField
         id="event-genre"
         label="Gênero"
-        type="number"
-        value={values.genre_id || ""}
+        options={genreOptions.map((option) => ({ value: String(option.value), label: option.label }))}
+        value={values.genre_id ? String(values.genre_id) : ""}
         error={errors.genre_id}
         onChange={(e) => setValues({ ...values, genre_id: Number(e.target.value) })}
       />

@@ -3,6 +3,7 @@ import type {
   RegisterPromoterPayload,
   CreateEventFields,
   PlanPayload,
+  GenrePayload,
 } from "../../lib/api/client";
 
 export type FieldErrors = Record<string, string>;
@@ -95,5 +96,11 @@ export function validatePlanFields(values: Partial<PlanPayload>): FieldErrors {
     errors.publish_quota = "A cota de publicações deve ser maior ou igual a zero.";
   }
 
+  return errors;
+}
+
+export function validateGenreFields(values: Partial<GenrePayload>): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!values.name?.trim()) errors.name = REQUIRED;
   return errors;
 }

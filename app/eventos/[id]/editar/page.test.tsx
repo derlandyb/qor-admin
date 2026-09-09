@@ -56,6 +56,9 @@ function stubFetch(events: unknown[], extra?: (url: string, init?: RequestInit) 
     }
     const extraResponse = extra?.(url, init);
     if (extraResponse) return Promise.resolve(extraResponse);
+    if (url.includes("/genres")) {
+      return Promise.resolve(jsonResponse({ data: [{ id: 1, name: "Rock", slug: "rock", is_active: true }] }));
+    }
     if (url.includes("/events")) {
       return Promise.resolve(jsonResponse({ data: events }));
     }

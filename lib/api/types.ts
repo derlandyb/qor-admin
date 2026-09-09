@@ -119,6 +119,13 @@ export interface Plan {
   is_default_free: boolean;
 }
 
+export interface Genre {
+  id: number;
+  name: string;
+  slug: string;
+  is_active: boolean;
+}
+
 export interface Paginated<T> {
   data: T[];
   current_page: number;

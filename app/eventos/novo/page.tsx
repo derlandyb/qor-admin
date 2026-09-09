@@ -18,6 +18,7 @@ import { EventForm, type EventFormDraft } from "../../../components/design-syste
 import { OrganizerBlockedNotice } from "../../../components/design-system/OrganizerBlockedNotice";
 import { useSession } from "../../../hooks/useSession";
 import { useEvents } from "../../../hooks/useOrganizerEvents";
+import { useGenres } from "../../../hooks/useGenres";
 import { isOrganizerBlocked } from "../../../lib/organizer-approval";
 import { ApiError } from "../../../lib/api/http";
 
@@ -25,6 +26,8 @@ export default function NewEventPage() {
   const router = useRouter();
   const { account, venue, promoter, loading: sessionLoading, error: sessionError } = useSession();
   const { create } = useEvents();
+  const { genres } = useGenres();
+  const genreOptions = genres.filter((g) => g.is_active).map((g) => ({ value: g.id, label: g.name }));
   const [formError, setFormError] = useState<string | null>(null);
 
   async function handleSubmit(values: EventFormDraft) {
@@ -81,7 +84,12 @@ export default function NewEventPage() {
         </p>
       )}
 
-      <EventForm initialValues={initialValues} onSubmit={handleSubmit} submitLabel="Criar Evento" />
+      <EventForm
+        initialValues={initialValues}
+        genreOptions={genreOptions}
+        onSubmit={handleSubmit}
+        submitLabel="Criar Evento"
+      />
     </div>
   );
 }

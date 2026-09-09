@@ -11,6 +11,7 @@ import type {
   DashboardEvent,
   DataEnvelope,
   Event,
+  Genre,
   Paginated,
   PendingAccount,
   Plan,
@@ -256,6 +257,32 @@ export function updatePlan(id: number, payload: PlanPayload) {
 
 export function deactivatePlan(id: number) {
   return apiRequest<DataEnvelope<Plan>>(`/plans/${id}/deactivate`, { method: "POST" });
+}
+
+// --- Genres (Super Admin manages, any admin-guard account can list) ---
+
+export function listGenres() {
+  return apiRequest<DataEnvelope<Genre[]>>("/genres");
+}
+
+export interface GenrePayload {
+  name: string;
+}
+
+export function createGenre(payload: GenrePayload) {
+  return apiRequest<DataEnvelope<Genre>>("/genres", { method: "POST", json: payload });
+}
+
+export function updateGenre(id: number, payload: GenrePayload) {
+  return apiRequest<DataEnvelope<Genre>>(`/genres/${id}`, { method: "PATCH", json: payload });
+}
+
+export function activateGenre(id: number) {
+  return apiRequest<DataEnvelope<Genre>>(`/genres/${id}/activate`, { method: "POST" });
+}
+
+export function deactivateGenre(id: number) {
+  return apiRequest<DataEnvelope<Genre>>(`/genres/${id}/deactivate`, { method: "POST" });
 }
 
 // --- helpers ---

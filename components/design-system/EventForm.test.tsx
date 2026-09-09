@@ -3,15 +3,20 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EventForm } from "./EventForm";
 
+const GENRE_OPTIONS = [
+  { value: 1, label: "Rock" },
+  { value: 3, label: "Samba" },
+];
+
 describe("EventForm", () => {
   test("GIVEN a paid event with no ticket link WHEN submitted THEN it blocks submit with the ticket_url error", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<EventForm onSubmit={onSubmit} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={onSubmit} />);
 
     await user.type(screen.getByLabelText("Título"), "Show");
     await user.type(screen.getByLabelText("Descrição"), "desc");
-    await user.type(screen.getByLabelText("Gênero"), "1");
+    await user.selectOptions(screen.getByLabelText("Gênero"), "1");
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
     expect(onSubmit).not.toHaveBeenCalled();
@@ -23,7 +28,7 @@ describe("EventForm", () => {
   test("GIVEN the Gênero field is left untouched WHEN submitted THEN it blocks submit with the genre_id error", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<EventForm onSubmit={onSubmit} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={onSubmit} />);
 
     await user.type(screen.getByLabelText("Título"), "Show");
     await user.type(screen.getByLabelText("Descrição"), "desc");
@@ -39,12 +44,12 @@ describe("EventForm", () => {
   test("GIVEN the Endereço field is left untouched WHEN submitted THEN it blocks submit with the address error", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<EventForm onSubmit={onSubmit} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={onSubmit} />);
 
     await user.type(screen.getByLabelText("Título"), "Show");
     await user.type(screen.getByLabelText("Descrição"), "desc");
     await user.type(screen.getByLabelText("Data e hora"), "2026-11-01T20:00");
-    await user.type(screen.getByLabelText("Gênero"), "1");
+    await user.selectOptions(screen.getByLabelText("Gênero"), "1");
     await user.click(screen.getByLabelText("Evento gratuito"));
     await user.click(screen.getByRole("button", { name: "Salvar" }));
 
@@ -54,22 +59,29 @@ describe("EventForm", () => {
 
   test("GIVEN a free event toggle WHEN checked THEN the ticket link field disappears", async () => {
     const user = userEvent.setup();
-    render(<EventForm onSubmit={vi.fn()} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={vi.fn()} />);
 
     expect(screen.getByLabelText("Link do ingresso")).toBeInTheDocument();
     await user.click(screen.getByLabelText("Evento gratuito"));
     expect(screen.queryByLabelText("Link do ingresso")).not.toBeInTheDocument();
   });
 
+  test("GIVEN genreOptions WHEN it renders THEN the Gênero field lists each option by name", () => {
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={vi.fn()} />);
+
+    expect(screen.getByRole("option", { name: "Rock" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Samba" })).toBeInTheDocument();
+  });
+
   test("GIVEN a fully filled free event WHEN submitted THEN onSubmit receives every field, including the optional ones", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<EventForm onSubmit={onSubmit} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={onSubmit} />);
 
     await user.type(screen.getByLabelText("Título"), "Show Gratuito");
     await user.type(screen.getByLabelText("Descrição"), "desc");
     await user.type(screen.getByLabelText("Data e hora"), "2026-11-01T20:00");
-    await user.type(screen.getByLabelText("Gênero"), "3");
+    await user.selectOptions(screen.getByLabelText("Gênero"), "3");
     await user.type(screen.getByLabelText(/Endereço/), "Praça Central");
     await user.click(screen.getByLabelText("Evento gratuito"));
     await user.type(screen.getByLabelText(/Capacidade/), "200");
@@ -80,6 +92,7 @@ describe("EventForm", () => {
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Show Gratuito",
+        genre_id: 3,
         is_free: true,
         capacity: 200,
         age_rating: "16",
@@ -92,6 +105,7 @@ describe("EventForm", () => {
     render(
       <EventForm
         initialValues={{ title: "Show Existente", is_free: true }}
+        genreOptions={GENRE_OPTIONS}
         onSubmit={vi.fn()}
         submitLabel="Atualizar"
       />,
@@ -104,14 +118,14 @@ describe("EventForm", () => {
   test("GIVEN a cover image file WHEN selected THEN it is included on submit", async () => {
     const user = userEvent.setup();
     const onSubmit = vi.fn();
-    render(<EventForm onSubmit={onSubmit} />);
+    render(<EventForm genreOptions={GENRE_OPTIONS} onSubmit={onSubmit} />);
 
     const file = new File(["cover"], "cover.png", { type: "image/png" });
     await user.upload(screen.getByLabelText(/Imagem de capa/), file);
     await user.type(screen.getByLabelText("Título"), "Show");
     await user.type(screen.getByLabelText("Descrição"), "desc");
     await user.type(screen.getByLabelText("Data e hora"), "2026-11-01T20:00");
-    await user.type(screen.getByLabelText("Gênero"), "1");
+    await user.selectOptions(screen.getByLabelText("Gênero"), "1");
     await user.type(screen.getByLabelText(/Endereço/), "Praça Central");
     await user.click(screen.getByLabelText("Evento gratuito"));
     await user.click(screen.getByRole("button", { name: "Salvar" }));

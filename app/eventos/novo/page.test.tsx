@@ -63,6 +63,10 @@ function promoterResponse(approvalStatus = "approved"): Response {
   });
 }
 
+function genresResponse(): Response {
+  return jsonResponse({ data: [{ id: 1, name: "Rock", slug: "rock", is_active: true }] });
+}
+
 function stubFetch(opts: {
   accountType: "venue_admin" | "promoter";
   approvalStatus?: string;
@@ -83,6 +87,9 @@ function stubFetch(opts: {
     }
     if (url.includes("/promoters/me")) {
       return Promise.resolve(promoterResponse(opts.approvalStatus ?? "approved"));
+    }
+    if (url.includes("/genres")) {
+      return Promise.resolve(genresResponse());
     }
     return Promise.resolve(jsonResponse({ message: "not found" }, 404));
   });
@@ -149,7 +156,8 @@ describe("app/eventos/novo/page.tsx (integration, real hooks + client + http sta
     await user.type(screen.getByLabelText(/descrição/i), "Descrição do show novo.");
     await user.type(screen.getByLabelText(/data e hora/i), "2099-12-31T22:00");
     await user.selectOptions(screen.getByLabelText(/^cidade$/i), "vitoria");
-    await user.type(screen.getByLabelText(/gênero/i), "1");
+    await screen.findByLabelText(/gênero/i);
+    await user.selectOptions(screen.getByLabelText(/gênero/i), "1");
     await user.type(screen.getByLabelText(/^endereço/i), "Praça Central");
     await user.click(screen.getByLabelText(/evento gratuito/i));
 
@@ -181,7 +189,8 @@ describe("app/eventos/novo/page.tsx (integration, real hooks + client + http sta
     await user.type(screen.getByLabelText(/descrição/i), "Descrição do show novo.");
     await user.type(screen.getByLabelText(/data e hora/i), "2099-12-31T22:00");
     await user.selectOptions(screen.getByLabelText(/^cidade$/i), "vitoria");
-    await user.type(screen.getByLabelText(/gênero/i), "1");
+    await screen.findByLabelText(/gênero/i);
+    await user.selectOptions(screen.getByLabelText(/gênero/i), "1");
     await user.type(screen.getByLabelText(/^endereço/i), "Praça Central");
     await user.click(screen.getByLabelText(/evento gratuito/i));
 

@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventForm, type EventFormDraft } from "../../../../components/design-system/EventForm";
 import { useEvents } from "../../../../hooks/useOrganizerEvents";
+import { useGenres } from "../../../../hooks/useGenres";
 import { ApiError } from "../../../../lib/api/http";
 
 interface EditEventPageProps {
@@ -40,6 +41,8 @@ function LoadingState() {
 export default function EditEventPage({ params }: EditEventPageProps) {
   const router = useRouter();
   const { events, loading: eventsLoading, error, edit } = useEvents();
+  const { genres } = useGenres();
+  const genreOptions = genres.filter((g) => g.is_active).map((g) => ({ value: g.id, label: g.name }));
   const [id, setId] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -117,7 +120,12 @@ export default function EditEventPage({ params }: EditEventPageProps) {
           {formError}
         </p>
       )}
-      <EventForm initialValues={initialValues} onSubmit={handleSubmit} submitLabel="Salvar Alterações" />
+      <EventForm
+        initialValues={initialValues}
+        genreOptions={genreOptions}
+        onSubmit={handleSubmit}
+        submitLabel="Salvar Alterações"
+      />
     </div>
   );
 }

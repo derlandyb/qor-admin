@@ -150,7 +150,7 @@ export interface CreateEventFields {
   city: City;
   genre_id: number;
   is_free: boolean;
-  address?: string | null;
+  address: string;
   cover_image?: File;
   ticket_url?: string | null;
   capacity?: number | null;

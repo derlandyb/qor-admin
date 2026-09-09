@@ -36,12 +36,16 @@ export interface EventFormProps {
 /**
  * design-system-admin.md §5.8 — field set from api's CreateEventRequest
  * (EventController::store). ticket_url is required only when !is_free, per
- * ADMIN-11/ADMIN-12. Genre is a DB-backed lookup table (ARCHITECTURE §14.1),
- * so this form takes a raw genre_id for now — NOT because AT12's hooks
- * were missing (they landed in this same PR), but because qor-api has no
- * genre-list endpoint at all yet (neither /api/v1 nor /api/admin/v1) for
- * a picker to fetch from. A real picker needs that endpoint built first —
- * flagged in .specs/project/STATE.md's Todos.
+ * ADMIN-11/ADMIN-12. address is always required now — qor-api guarantees
+ * every event has a non-null address (venue organizers get it defaulted via
+ * `initialValues`; promoters must fill it in themselves, which this field's
+ * validation now enforces instead of silently accepting a blank one).
+ * Genre is a DB-backed lookup table (ARCHITECTURE §14.1), so this form takes
+ * a raw genre_id for now — NOT because AT12's hooks were missing (they
+ * landed in this same PR), but because qor-api has no genre-list endpoint
+ * at all yet (neither /api/v1 nor /api/admin/v1) for a picker to fetch
+ * from. A real picker needs that endpoint built first — flagged in
+ * .specs/project/STATE.md's Todos.
  */
 export function EventForm({ initialValues, onSubmit, submitLabel = "Salvar" }: EventFormProps) {
   const [values, setValues] = useState<EventFormDraft>({ ...DEFAULT_DRAFT, ...initialValues });
@@ -96,8 +100,9 @@ export function EventForm({ initialValues, onSubmit, submitLabel = "Salvar" }: E
       />
       <TextField
         id="event-address"
-        label="Endereço (opcional para eventos em locais cadastrados)"
-        value={values.address ?? ""}
+        label="Endereço"
+        value={values.address}
+        error={errors.address}
         onChange={(e) => setValues({ ...values, address: e.target.value })}
       />
 

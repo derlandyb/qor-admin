@@ -67,6 +67,7 @@ describe("validateEventFields", () => {
     starts_at: "2026-10-01T20:00",
     city: "vitoria" as const,
     genre_id: 1,
+    address: "Praça Central",
     is_free: true,
   };
 
@@ -88,13 +89,19 @@ describe("validateEventFields", () => {
     expect(errors.ticket_url).toBeUndefined();
   });
 
-  test("GIVEN missing title/description/starts_at/city/genre_id WHEN validated THEN each is flagged", () => {
+  test("GIVEN missing title/description/starts_at/city/genre_id/address WHEN validated THEN each is flagged", () => {
     const errors = validateEventFields({ is_free: true });
     expect(errors.title).toBeDefined();
     expect(errors.description).toBeDefined();
     expect(errors.starts_at).toBeDefined();
     expect(errors.city).toBeDefined();
     expect(errors.genre_id).toBeDefined();
+    expect(errors.address).toBeDefined();
+  });
+
+  test("GIVEN a blank address WHEN validated THEN it is rejected as required", () => {
+    const errors = validateEventFields({ ...validFree, address: "   " });
+    expect(errors.address).toBe("Este campo é obrigatório.");
   });
 
   test("GIVEN genre_id: 0 (the form's untouched default) WHEN validated THEN it is rejected as required", () => {

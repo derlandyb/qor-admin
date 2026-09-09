@@ -19,6 +19,7 @@ import { OrganizerBlockedNotice } from "../../../components/design-system/Organi
 import { useSession } from "../../../hooks/useSession";
 import { useEvents } from "../../../hooks/useOrganizerEvents";
 import { isOrganizerBlocked } from "../../../lib/organizer-approval";
+import { ApiError } from "../../../lib/api/http";
 
 export default function NewEventPage() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export default function NewEventPage() {
     try {
       await create(values);
       router.push("/eventos");
-    } catch {
-      setFormError("Erro ao criar o evento.");
+    } catch (err) {
+      setFormError(err instanceof ApiError ? err.message : "Erro ao criar o evento.");
     }
   }
 

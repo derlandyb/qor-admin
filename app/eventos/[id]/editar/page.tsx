@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EventForm, type EventFormDraft } from "../../../../components/design-system/EventForm";
 import { useEvents } from "../../../../hooks/useOrganizerEvents";
+import { ApiError } from "../../../../lib/api/http";
 
 interface EditEventPageProps {
   params: Promise<{ id: string }>;
@@ -40,6 +41,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   const router = useRouter();
   const { events, loading: eventsLoading, error, edit } = useEvents();
   const [id, setId] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -55,8 +57,13 @@ export default function EditEventPage({ params }: EditEventPageProps) {
 
   async function handleSubmit(values: EventFormDraft) {
     if (id === null) return;
-    await edit(Number(id), values);
-    router.push("/eventos");
+    setFormError(null);
+    try {
+      await edit(Number(id), values);
+      router.push("/eventos");
+    } catch (err) {
+      setFormError(err instanceof ApiError ? err.message : "Erro ao salvar o evento.");
+    }
   }
 
   if (id === null || eventsLoading) {
@@ -88,7 +95,7 @@ export default function EditEventPage({ params }: EditEventPageProps) {
     city: event.city,
     genre_id: event.genre_id,
     is_free: event.is_free,
-    address: event.address ?? "",
+    address: event.address,
     ticket_url: event.ticket_url ?? "",
     capacity: event.capacity,
     age_rating: event.age_rating ?? "",
@@ -98,6 +105,11 @@ export default function EditEventPage({ params }: EditEventPageProps) {
   return (
     <div className="flex flex-col gap-6 p-6">
       <h1 className="text-2xl font-semibold text-admin-text-primary">Editar Evento</h1>
+      {formError && (
+        <p role="alert" className="rounded-admin-default bg-admin-danger/15 px-3 py-2 text-sm text-admin-danger">
+          {formError}
+        </p>
+      )}
       <EventForm initialValues={initialValues} onSubmit={handleSubmit} submitLabel="Salvar Alterações" />
     </div>
   );

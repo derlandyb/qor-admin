@@ -150,6 +150,7 @@ describe("app/eventos/novo/page.tsx (integration, real hooks + client + http sta
     await user.type(screen.getByLabelText(/data e hora/i), "2099-12-31T22:00");
     await user.selectOptions(screen.getByLabelText(/^cidade$/i), "vitoria");
     await user.type(screen.getByLabelText(/gênero/i), "1");
+    await user.type(screen.getByLabelText(/^endereço/i), "Praça Central");
     await user.click(screen.getByLabelText(/evento gratuito/i));
 
     await user.click(screen.getByRole("button", { name: /criar evento/i }));

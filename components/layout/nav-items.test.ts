@@ -2,9 +2,10 @@ import { describe, expect, test } from "vitest";
 import { navItemsForRole } from "./nav-items";
 
 describe("navItemsForRole", () => {
-  test("GIVEN role super_admin THEN it includes Planos but not Assinatura", () => {
+  test("GIVEN role super_admin THEN it includes Planos and Gêneros but not Assinatura", () => {
     const hrefs = navItemsForRole("super_admin").map((item) => item.href);
     expect(hrefs).toContain("/planos");
+    expect(hrefs).toContain("/generos");
     expect(hrefs).not.toContain("/assinatura");
   });
 
